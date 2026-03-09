@@ -1,0 +1,13 @@
+{
+  "name": "ruleset-compiler",
+  "version": "1.0.0",
+  "description": "Compile a ruleset directory into a JSON payload and push to the Realm VTT API",
+  "type": "module",
+  "main": "src/cli.js",
+  "scripts": {
+    "start": "node src/cli.js"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  }
+}
