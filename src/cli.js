@@ -30,39 +30,37 @@ async function run(directory, opts) {
     const payload = await compile(directory, { verbose: opts.verbose });
     if (opts.verbose) console.error("");
 
-    // 2. Dry run — write to stdout
-    if (opts.dryRun) {
-      process.stdout.write(JSON.stringify(payload, null, 2));
-      process.stdout.write("\n");
-      return;
-    }
-
-    // 3. Output to file
+    // 2. Output to file (no auth needed)
     if (opts.output) {
       await writeFile(opts.output, JSON.stringify(payload, null, 2), "utf-8");
       console.error(`Written to ${opts.output}`);
       return;
     }
 
-    // 4. Authenticate
-    const client = new RulesetAPIClient(opts.url);
+    // 3. Authenticate (needed for both dry-run and real upload)
+    const needsAuth = !opts.dryRun || opts.email || opts.password || opts.token || opts.id || opts.new;
 
-    if (opts.token) {
-      client.setToken(opts.token);
-      if (opts.verbose) console.error("Using provided token.");
-    } else {
-      const email = opts.email || (await prompt("Email: "));
-      const password = opts.password || (await promptPassword("Password: "));
-      if (opts.verbose) console.error("Logging in...");
-      await client.login(email, password);
-      console.error("Logged in successfully.");
+    let client;
+    if (needsAuth) {
+      client = new RulesetAPIClient(opts.url);
+
+      if (opts.token) {
+        client.setToken(opts.token);
+        if (opts.verbose) console.error("Using provided token.");
+      } else {
+        const email = opts.email || (await prompt("Email: "));
+        const password = opts.password || (await promptPassword("Password: "));
+        if (opts.verbose) console.error("Logging in...");
+        await client.login(email, password);
+        console.error("Logged in successfully.");
+      }
     }
 
-    // 5. Select target
+    // 4. Select target
     let rulesetId = opts.id;
     let isNew = opts.new;
 
-    if (!rulesetId && !isNew) {
+    if (client && !rulesetId && !isNew) {
       // Fetch owned rulesets and let user pick
       if (opts.verbose) console.error("Fetching owned rulesets...");
       const rulesets = await client.listOwnedRulesets();
@@ -82,6 +80,20 @@ async function run(directory, opts) {
           isNew = true;
         }
       }
+    }
+
+    // 5. Dry run — show what would happen, write JSON to stdout
+    if (opts.dryRun) {
+      if (isNew) {
+        console.error(`[dry-run] Would CREATE ruleset "${payload.name}"`);
+      } else if (rulesetId) {
+        console.error(`[dry-run] Would UPDATE ruleset ${rulesetId}`);
+      } else {
+        console.error(`[dry-run] No target selected`);
+      }
+      process.stdout.write(JSON.stringify(payload, null, 2));
+      process.stdout.write("\n");
+      return;
     }
 
     // 6. Upload
