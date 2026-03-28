@@ -1,0 +1,222 @@
+{
+  "name": "My Custom RPG",
+  "description": "A custom tabletop RPG ruleset for Realm VTT",
+  "version": 1,
+
+  "records": [
+    {
+      "name": "Characters",
+      "type": "characters",
+      "minX": 550,
+      "minY": 600,
+      "tabs": [
+        { "name": "Main", "file": "character-main.html" },
+        { "name": "Skills", "file": "character-skills.html" },
+        { "name": "Combat", "file": "character-combat.html" },
+        { "name": "Inventory", "file": "character-inventory.html" },
+        { "name": "Notes", "file": "character-notes.html" }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "",
+      "filters": {}
+    },
+    {
+      "name": "NPCs",
+      "type": "npcs",
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        { "name": "Main", "file": "npcs-main.html" },
+        { "name": "Inventory", "file": "npcs-inventory.html" },
+        { "name": "Description", "file": "npcs-description.html" }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "",
+      "filters": {}
+    },
+    {
+      "name": "Items",
+      "type": "items",
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        { "name": "Main", "file": "items-main.html" },
+        { "name": "Rules", "file": "items-rules.html" }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "IconBox",
+      "filters": {}
+    },
+    {
+      "name": "Abilities",
+      "type": "abilities",
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        { "name": "Main", "file": "abilities-main.html" },
+        { "name": "Rules", "file": "abilities-rules.html" }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "IconStar",
+      "filters": {}
+    },
+    {
+      "name": "Skill List",
+      "type": "skill_list",
+      "isList": true,
+      "singleRow": false,
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Skill",
+      "newItemName": "New Skill",
+      "disableDrop": true,
+      "tabs": [{ "name": "Main", "file": "skill-list.html" }]
+    },
+    {
+      "name": "Attack List",
+      "type": "attack_list",
+      "isList": true,
+      "singleRow": false,
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "disableDrop": true,
+      "emptyListText": "Equip weapons on the Inventory tab",
+      "filterCriteria": [
+        {
+          "field": "type",
+          "operator": "equals",
+          "value": "weapon",
+          "isOr": false
+        },
+        {
+          "field": "carried",
+          "operator": "equals",
+          "value": "equipped",
+          "isOr": false
+        }
+      ],
+      "tabs": [{ "name": "Main", "file": "attack-list.html" }]
+    },
+    {
+      "name": "Inventory List",
+      "type": "inventory_list",
+      "isList": true,
+      "singleRow": false,
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Item",
+      "newItemName": "New Item",
+      "emptyListText": "Drop Items Here",
+      "allowedListTypes": ["items"],
+      "orderCriteria": [{ "field": "name", "descending": false }],
+      "tabs": [{ "name": "Main", "file": "inventory-list.html" }]
+    },
+    {
+      "name": "Ability List",
+      "type": "ability_list",
+      "isList": true,
+      "singleRow": false,
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "disableDrop": true,
+      "emptyListText": "Drop Abilities on the Main Tab",
+      "tabs": [{ "name": "Main", "file": "ability-list.html" }]
+    }
+  ],
+
+  "settings": {
+    "healthIndicator": {
+      "disabled": false,
+      "maxHealthField": "maxHp",
+      "currentHealthField": "curHp",
+      "color": [
+        { "percentage": 0, "color": "#4A0000", "label": "Dead" },
+        { "percentage": 1, "color": "#8B0000", "label": "Critical" },
+        { "percentage": 25, "color": "#CC4400", "label": "Bloodied" },
+        { "percentage": 50, "color": "#FF8C00", "label": "Injured" },
+        { "percentage": 75, "color": "#B8860B", "label": "Hurt" },
+        { "percentage": 100, "color": "#00FF00", "label": "Healthy" }
+      ]
+    },
+    "combatTracker": {
+      "initiative": "initiative",
+      "order": "desc",
+      "slotBased": false,
+      "clearSlotsPerRound": false,
+      "additionalFields": [],
+      "onRollInitiative": { "file": "scripts/on-roll-initiative.js" },
+      "onRollInitiativeGroup": "",
+      "onTokenAdd": "",
+      "onEncounterStart": "",
+      "onEncounterEnd": "",
+      "onTurnStart": "",
+      "onTurnEnd": "",
+      "onRoundStart": "",
+      "onRoundEnd": ""
+    },
+    "rollTypes": [
+      { "name": "skill", "file": "rollhandlers/skill.js" },
+      { "name": "damage", "file": "rollhandlers/damage.js" }
+    ],
+    "damage": {
+      "enableDamage": true,
+      "enableHealing": true,
+      "damageScript": { "file": "scripts/damage-apply.js" },
+      "healingScript": { "file": "scripts/healing-apply.js" },
+      "damageTypes": {},
+      "enableSecondaryStat": false,
+      "secondaryStatLabel": "",
+      "secondaryStatScript": "",
+      "secondaryStatIcon": "",
+      "secondaryStatColor": ""
+    },
+    "effects": [],
+    "otherSettings": {
+      "commonScript": { "file": "rollhandlers/common.js" },
+      "scripts": {
+        "spells": { "file": "scripts/spells.js" },
+        "rest": { "file": "scripts/rest.js" }
+      },
+      "defaultDice": "default",
+      "defaultUnitsPerSquare": 1,
+      "defaultUnits": "feet",
+      "advDisRolls": [],
+      "advName": "",
+      "advShortName": "",
+      "disName": "",
+      "disShortName": "",
+      "alternateDiagonalMovement": false,
+      "rerollContextMenuLabel": "",
+      "onReroll": "",
+      "rerollIgnoresAdvDis": false
+    },
+    "partySheet": {
+      "additionalFields": [],
+      "inventory": {
+        "enabled": false,
+        "recordType": "items",
+        "additionalFields": []
+      },
+      "awards": {
+        "enabled": true,
+        "xpName": "XP",
+        "xpField": "xp",
+        "xpMethod": "award_equally",
+        "currencyFields": []
+      }
+    },
+    "campaignSettings": [],
+    "tokenSize": [
+      { "size": 0.5, "label": "Tiny" },
+      { "size": 1, "label": "Medium" },
+      { "size": 2, "label": "Large" },
+      { "size": 3, "label": "Huge" }
+    ],
+    "calendars": [],
+    "themes": []
+  }
+}
