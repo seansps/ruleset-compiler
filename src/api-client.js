@@ -99,4 +99,23 @@ export class RulesetAPIClient {
 
     return res.json();
   }
+
+  /**
+   * Create a new record.
+   * POST /records
+   */
+  async createRecord(payload) {
+    const res = await fetch(`${this.baseUrl}/records`, {
+      method: "POST",
+      headers: this._headers(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Failed to create record (${res.status}): ${body}`);
+    }
+
+    return res.json();
+  }
 }
