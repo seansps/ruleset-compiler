@@ -16,6 +16,41 @@
         { "name": "Inventory", "file": "character-inventory.html" },
         { "name": "Notes", "file": "character-notes.html" }
       ],
+      "jsonImport": {
+        "enabled": true,
+        "label": "Import from D&D Beyond",
+        "script": { "file": "importers/ddb-character.js" },
+        "postScript": { "file": "importers/ddb-character-post.js" }
+      },
+      "wizard": {
+        "enabled": true,
+        "steps": [
+          {
+            "name": "Attributes",
+            "next": "Go to Class Selection",
+            "previous": "",
+            "file": "wizards/characters/step-1.html"
+          },
+          {
+            "name": "Class",
+            "next": "Go to Skills",
+            "previous": "Back to Attributes",
+            "file": "wizards/characters/step-2.html"
+          },
+          {
+            "name": "Skills",
+            "next": "Go to Equipment",
+            "previous": "Back to Class",
+            "file": "wizards/characters/step-3.html"
+          },
+          {
+            "name": "Equipment",
+            "next": "Finish",
+            "previous": "Back to Skills",
+            "file": "wizards/characters/step-4.html"
+          }
+        ]
+      },
       "hideFromCompendium": false,
       "isList": false,
       "icon": "",

@@ -125,6 +125,36 @@ export async function compile(directory, { verbose = false } = {}) {
       })
     );
 
+    // Resolve jsonImport file references (script/postScript can use { file: "..." })
+    if (compiled.jsonImport) {
+      compiled.jsonImport = await resolveFileRefs(compiled.jsonImport, dir, verbose);
+    }
+
+    // Resolve wizard step HTML files (file → layout, mirroring tabs)
+    if (compiled.wizard && Array.isArray(compiled.wizard.steps)) {
+      compiled.wizard = {
+        ...compiled.wizard,
+        steps: await Promise.all(
+          compiled.wizard.steps.map(async (step) => {
+            const layout = step.file
+              ? await (async () => {
+                  const filePath = join(dir, step.file);
+                  if (verbose) console.log(`  Reading wizard step: ${step.file}`);
+                  return readFile(filePath, "utf-8");
+                })()
+              : step.layout || "";
+            const result = { name: step.name, layout };
+            for (const [key, value] of Object.entries(step)) {
+              if (key !== "name" && key !== "file" && key !== "layout") {
+                result[key] = value;
+              }
+            }
+            return result;
+          })
+        ),
+      };
+    }
+
     fillRecordDefaults(compiled);
     records.push(compiled);
   }
@@ -164,6 +194,8 @@ export async function compile(directory, { verbose = false } = {}) {
     console.log(`Compiled: ${payload.name}`);
     console.log(`  Records: ${records.length}`);
     console.log(`  Roll types: ${settings.rollTypes?.length || 0}`);
+    const importerCount = records.filter((r) => r.jsonImport).length;
+    if (importerCount > 0) console.log(`  Records with jsonImport: ${importerCount}`);
   }
 
   return payload;
