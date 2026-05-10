@@ -10,6 +10,11 @@ src/
   compiler.js    — Reads ruleset.config.json, resolves file refs, builds API payload
   api-client.js  — Realm VTT API client (auth, CRUD for rulesets)
   prompts.js     — Terminal prompts (text, password, select)
+example/
+  ruleset.config.json  — Reference config showing every supported setting
+                         (read this first when you need to know what shape a
+                         ruleset config can take).
+WIKI.md          — Authoring guide for ruleset authors; deeper than the README.
 ```
 
 ## How It Works
@@ -33,3 +38,28 @@ src/
 - `commander` for CLI parsing
 - Node.js built-ins only (no bundler, no build step)
 - Requires Node.js 18+ (uses native `fetch`)
+
+## Combat Tracker — Initiative Mode
+
+`settings.combatTracker.initiativeMode` selects how the tracker decides whose turn it is. Pick one of:
+
+- **`"standard"`** — numeric initiative. Default. Each token has a per-token init value (in the `initiative` field, or whatever `combatTracker.initiative` names). Sorted by `combatTracker.order` (`"desc"` = highest acts first, `"asc"` = lowest first). Use for d20-style games where every combatant rolls their own init.
+- **`"slot"`** — initiative slots. Same numeric model, but the GM assigns tokens to slot rows. `combatTracker.clearSlotsPerRound: true` resets the assignments each round.
+- **`"manual"`** — GM-driven, no fixed numeric order; the GM clicks the active token. Sides come from each token's `faction` (`"friend"` / `"enemy"` / `"neutral"`). Configure via `settings.combatTracker.manualOptions`:
+  - `groupBySide` (default `true`) — render the tracker as friend/enemy/neutral sections, with the side acting first this round on top. Turn off for spotlight-style flat lists (Daggerheart, PBTA).
+  - `sideOrder` — `"manual"` (default) means whoever the GM (or `defaultStartSide`) chose acts first; `"rolled"` means each round the side whose token rolls best on `combatTracker.initiative` wins, with `combatTracker.order` deciding direction (`"desc"` = high wins, `"asc"` = low wins, e.g. 1d6 OSR-style). In `rolled` mode the per-token init column and Roll Init buttons stay visible, and the existing `onRollInitiative` hook drives the dice.
+  - `defaultStartSide` — `"friend"` / `"enemy"` / `"neutral"`, or omitted. In `manual` order this side auto-starts each round (GM can override per-round). In `rolled` order it's the tiebreaker when faction max-init values are equal.
+
+Back-compat: the legacy `slotBased: true` boolean is still read — if `initiativeMode` is missing it's treated as `"slot"`. New rulesets should set `initiativeMode` explicitly.
+
+When advising on a new ruleset, pick the mode that matches the source system:
+
+| System | initiativeMode | sideOrder | defaultStartSide |
+|---|---|---|---|
+| D&D 5e / PF2e / Cypher / Fate | `standard` | — | — |
+| Some indie / Daggerheart-style | `slot` | — | — |
+| OSR / Vagabond / OD&D (PCs always first) | `manual` | `manual` | `friend` |
+| B/X / OSE (each side rolls 1d6) | `manual` | `rolled` (with `order: "asc"`) | — |
+| Daggerheart / PBTA / Forged in the Dark | `manual` (with `groupBySide: false`) | `manual` | — |
+
+The example in `example/ruleset.config.json` and the deeper docs in `WIKI.md` ("Combat tracker — initiative modes") show the full JSON shape.
