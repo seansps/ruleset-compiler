@@ -178,10 +178,16 @@
       ]
     },
     "combatTracker": {
+      "initiativeMode": "standard",
       "initiative": "initiative",
       "order": "desc",
       "slotBased": false,
       "clearSlotsPerRound": false,
+      "manualOptions": {
+        "groupBySide": true,
+        "sideOrder": "manual",
+        "defaultStartSide": "friend"
+      },
       "additionalFields": [],
       "onRollInitiative": { "file": "scripts/on-roll-initiative.js" },
       "onRollInitiativeGroup": "",
