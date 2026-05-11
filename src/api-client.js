@@ -101,19 +101,29 @@ export class RulesetAPIClient {
   }
 
   /**
-   * Create a new record.
-   * POST /records
+   * Create a new record. Routes NPCs to /npcs and tables to /tables —
+   * those endpoints want the payload without `recordType` in the body.
+   * Everything else goes to /records with `recordType` in the body.
    */
   async createRecord(payload) {
-    const res = await fetch(`${this.baseUrl}/records`, {
+    let path = "/records";
+    let body = payload;
+
+    if (payload.recordType === "npcs" || payload.recordType === "tables") {
+      path = `/${payload.recordType}`;
+      const { recordType, ...rest } = payload;
+      body = rest;
+    }
+
+    const res = await fetch(`${this.baseUrl}${path}`, {
       method: "POST",
       headers: this._headers(),
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`Failed to create record (${res.status}): ${body}`);
+      const text = await res.text();
+      throw new Error(`Failed to create record (${res.status}): ${text}`);
     }
 
     return res.json();
