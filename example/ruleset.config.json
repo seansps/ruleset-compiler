@@ -54,7 +54,11 @@
       "hideFromCompendium": false,
       "isList": false,
       "icon": "",
-      "filters": {}
+      "filters": {
+        "level": "dynamic",
+        "class": "dynamic",
+        "subclass": "dynamic"
+      }
     },
     {
       "name": "NPCs",
