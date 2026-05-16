@@ -101,19 +101,53 @@ export class RulesetAPIClient {
   }
 
   /**
-   * Create a new record. Routes NPCs to /npcs and tables to /tables —
-   * those endpoints want the payload without `recordType` in the body.
-   * Everything else goes to /records with `recordType` in the body.
+   * Resolve the API endpoint + request body for a record payload.
+   * NPCs route to /npcs and tables to /tables — those endpoints want the
+   * payload without `recordType` in the body. Everything else goes to
+   * /records with `recordType` in the body.
+   */
+  _recordEndpoint(payload) {
+    if (payload.recordType === "npcs" || payload.recordType === "tables") {
+      const { recordType, ...rest } = payload;
+      return { path: `/${payload.recordType}`, body: rest };
+    }
+    return { path: "/records", body: payload };
+  }
+
+  /**
+   * Find an existing record by name within a campaign.
+   * Returns the matching record object, or null if none found.
+   */
+  async findRecord(payload) {
+    const { path } = this._recordEndpoint(payload);
+    const params = new URLSearchParams({
+      campaignId: payload.campaignId,
+      name: payload.name,
+      $limit: "1",
+    });
+    if (path === "/records" && payload.recordType) {
+      params.set("recordType", payload.recordType);
+    }
+
+    const res = await fetch(`${this.baseUrl}${path}?${params}`, {
+      headers: this._headers(),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to query records (${res.status}): ${text}`);
+    }
+
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : data.data || [];
+    return items.find((r) => r.name === payload.name) || null;
+  }
+
+  /**
+   * Create a new record.
    */
   async createRecord(payload) {
-    let path = "/records";
-    let body = payload;
-
-    if (payload.recordType === "npcs" || payload.recordType === "tables") {
-      path = `/${payload.recordType}`;
-      const { recordType, ...rest } = payload;
-      body = rest;
-    }
+    const { path, body } = this._recordEndpoint(payload);
 
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: "POST",
@@ -124,6 +158,27 @@ export class RulesetAPIClient {
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`Failed to create record (${res.status}): ${text}`);
+    }
+
+    return res.json();
+  }
+
+  /**
+   * Update an existing record by _id.
+   * PATCH /records/:id (or /npcs/:id, /tables/:id).
+   */
+  async updateRecord(id, payload) {
+    const { path, body } = this._recordEndpoint(payload);
+
+    const res = await fetch(`${this.baseUrl}${path}/${id}`, {
+      method: "PATCH",
+      headers: this._headers(),
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to update record (${res.status}): ${text}`);
     }
 
     return res.json();
