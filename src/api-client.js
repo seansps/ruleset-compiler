@@ -166,9 +166,14 @@ export class RulesetAPIClient {
   /**
    * Update an existing record by _id.
    * PATCH /records/:id (or /npcs/:id, /tables/:id).
+   *
+   * The PATCH body omits lookup / immutable fields — `name`, `campaignId`
+   * and `recordType`. The record was already matched by name within its
+   * campaign, and those fields cannot change on update.
    */
   async updateRecord(id, payload) {
-    const { path, body } = this._recordEndpoint(payload);
+    const { path } = this._recordEndpoint(payload);
+    const { name, campaignId, recordType, ...body } = payload;
 
     const res = await fetch(`${this.baseUrl}${path}/${id}`, {
       method: "PATCH",
