@@ -101,6 +101,29 @@ export class RulesetAPIClient {
   }
 
   /**
+   * Resolve a campaign ID from its invite code.
+   * GET /campaigns?inviteCode=...
+   */
+  async getCampaignByInviteCode(inviteCode) {
+    const res = await fetch(
+      `${this.baseUrl}/campaigns?inviteCode=${encodeURIComponent(inviteCode)}`,
+      { headers: this._headers() }
+    );
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Failed to look up campaign (${res.status}): ${body}`);
+    }
+
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : data.data || [];
+    if (items.length === 0) {
+      throw new Error(`No campaign found for invite code: ${inviteCode}`);
+    }
+    return items[0]._id;
+  }
+
+  /**
    * Resolve the API endpoint + request body for a record payload.
    * NPCs route to /npcs and tables to /tables — those endpoints want the
    * payload without `recordType` in the body. Everything else goes to

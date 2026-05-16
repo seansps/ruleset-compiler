@@ -8,7 +8,10 @@ CLI tool that compiles a ruleset directory into a JSON payload and uploads it to
 src/
   cli.js         — CLI entry point (commander-based)
   compiler.js    — Reads ruleset.config.json, resolves file refs, builds API payload
-  api-client.js  — Realm VTT API client (auth, CRUD for rulesets)
+  api-client.js  — Realm VTT API client (auth, campaign lookup, CRUD for rulesets + records)
+  auth.js        — Builds an authenticated client from CLI options (token or email/password)
+  records.js     — `records` subcommand — CSV import with upsert-by-name
+  csv.js         — CSV parser (quoted fields, recordType/name/data columns)
   prompts.js     — Terminal prompts (text, password, select)
 example/
   ruleset.config.json  — Reference config showing every supported setting
@@ -32,6 +35,34 @@ WIKI.md          — Authoring guide for ruleset authors; deeper than the README
 - Tab entries use `file` → compiled to `layout`
 - Prompts write to stderr so stdout stays clean for `--dry-run` / `--output`
 - Auth: email/password login or direct JWT token via `--token`
+
+## Records Import (CSV)
+
+`records <csvfile>` imports compendium records into a campaign.
+
+- **CSV shape:** column 1 is `recordType`, column 2 is `name`. Each remaining header is
+  a dot-separated path into the record's `data` object — e.g. header `notes` →
+  `data.notes`, header `actions.0.name` → `data.actions[0].name` (numeric segments
+  build arrays). Empty cells are skipped, so a blank column never clobbers an existing
+  value on update.
+- **Cell coercion** (`csv.js`): cells starting with `{` or `[` are parsed as JSON —
+  this is how nested objects and lists are authored (e.g. an `actions` column holding a
+  whole JSON array); `true`/`false` become booleans; numbers that round-trip exactly
+  become numbers (`007`, `1/4`, `1e3` stay strings); everything else stays a string.
+- **List `_id`s:** any object that is an element of an array and lacks an `_id` is
+  stamped with a UUID — Realm VTT list entries (actions, traits, …) require one, so
+  CSV authors omit `_id` and let the importer fill it in.
+- **Target campaign:** pass `--campaign <id>` *or* `--invite <code>`. An invite code is
+  resolved to a campaign ID via `GET /campaigns?inviteCode=` (requires auth, so an
+  invite-code import authenticates even for `--dry-run`).
+- **Upsert by name:** each row is looked up by name within the campaign (`findRecord`).
+  If a match exists it is updated via `PATCH /<endpoint>/:id`; otherwise it is created
+  via `POST`. The PATCH body omits `name`, `campaignId`, and `recordType` (immutable /
+  lookup fields).
+- **Endpoint routing:** `recordType` of `npcs` → `/npcs`, `tables` → `/tables`,
+  everything else → `/records` (with `recordType` kept in the create body).
+- `example/test-records.csv` is a runnable sample — one NPC (with a 5e/Level Up
+  `actions` list) and one item.
 
 ## Dependencies
 

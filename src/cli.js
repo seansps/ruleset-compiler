@@ -41,9 +41,12 @@ program
 // --- records subcommand ---
 program
   .command("records")
-  .description("Import records from a CSV file")
+  .description(
+    "Import records from a CSV file (upserts by name: updates a record if one already exists in the campaign, otherwise creates it)"
+  )
   .argument("<csvfile>", "Path to CSV file")
-  .requiredOption("-c, --campaign <id>", "Campaign ID")
+  .option("-c, --campaign <id>", "Campaign ID (or use --invite)")
+  .option("-i, --invite <code>", "Campaign invite code — looked up to resolve the campaign ID")
   .option("--dry-run", "Print payloads to stdout (no upload)")
   .option("--delay <ms>", "Delay between API calls in ms", "250")
   .action(async (csvFile, cmdOpts, cmd) => {
@@ -55,7 +58,23 @@ program
       if (opts.verbose && err.stack) console.error(err.stack);
       process.exit(1);
     }
-  });
+  })
+  .addHelpText(
+    "after",
+    `
+Examples:
+  # Import by campaign ID
+  $ ruleset-compiler records records.csv --campaign 65f0a1b2c3d4e5f6a7b8c9d0
+
+  # Import by invite code (resolved to the campaign ID automatically)
+  $ ruleset-compiler records records.csv --invite ABC123 --email me@example.com
+
+  # Preview payloads without uploading
+  $ ruleset-compiler records records.csv --campaign <id> --dry-run
+
+CSV format: column 1 is recordType, column 2 is name, remaining columns
+become string keys on the record's data object.`
+  );
 
 async function runRulesets(directory, opts) {
   // 1. Compile

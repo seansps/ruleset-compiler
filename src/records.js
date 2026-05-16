@@ -25,7 +25,23 @@ export async function runRecords(csvFile, opts) {
   const records = await readRecordsCSV(csvFile);
   if (opts.verbose) console.error(`Parsed ${records.length} records from CSV.`);
 
-  const payloads = records.map((r) => buildRecordPayload(r, opts.campaign));
+  if (!opts.campaign && !opts.invite) {
+    throw new Error("Provide a campaign with --campaign <id> or --invite <code>.");
+  }
+
+  // Resolve the campaign. An invite code must be looked up via the API,
+  // which requires authentication.
+  let client;
+  let campaignId = opts.campaign;
+
+  if (!campaignId && opts.invite) {
+    client = await createAuthenticatedClient(opts);
+    if (opts.verbose) console.error(`Resolving invite code "${opts.invite}"...`);
+    campaignId = await client.getCampaignByInviteCode(opts.invite);
+    console.error(`Resolved invite code "${opts.invite}" to campaign ${campaignId}.`);
+  }
+
+  const payloads = records.map((r) => buildRecordPayload(r, campaignId));
 
   if (opts.dryRun) {
     process.stdout.write(JSON.stringify(payloads, null, 2));
@@ -34,7 +50,7 @@ export async function runRecords(csvFile, opts) {
     return;
   }
 
-  const client = await createAuthenticatedClient(opts);
+  if (!client) client = await createAuthenticatedClient(opts);
   const delay = parseInt(opts.delay, 10) || 250;
   const results = { created: 0, updated: 0, failed: [] };
 
