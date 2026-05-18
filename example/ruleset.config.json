@@ -219,7 +219,81 @@
       "secondaryStatIcon": "",
       "secondaryStatColor": ""
     },
-    "effects": [],
+    "effects": [
+      {
+        "label": "Ability Check Bonus",
+        "type": "abilityBonus",
+        "fields": [
+          {
+            "label": "All Checks",
+            "field": "all"
+          },
+          {
+            "label": "Strength Checks",
+            "field": "strength"
+          },
+          {
+            "label": "Dexterity Checks",
+            "field": "dexterity"
+          },
+          {
+            "label": "Constitution Checks",
+            "field": "constitution"
+          },
+          {
+            "label": "Intelligence Checks",
+            "field": "intelligence"
+          },
+          {
+            "label": "Wisdom Checks",
+            "field": "wisdom"
+          },
+          {
+            "label": "Charisma Checks",
+            "field": "charisma"
+          }
+        ]
+      },
+      {
+        "label": "Ability Check Penalty",
+        "type": "abilityPenalty",
+        "fields": [
+          {
+            "label": "All Checks",
+            "field": "all"
+          },
+          {
+            "label": "Strength Checks",
+            "field": "strength"
+          },
+          {
+            "label": "Dexterity Checks",
+            "field": "dexterity"
+          },
+          {
+            "label": "Constitution Checks",
+            "field": "constitution"
+          },
+          {
+            "label": "Intelligence Checks",
+            "field": "intelligence"
+          },
+          {
+            "label": "Wisdom Checks",
+            "field": "wisdom"
+          },
+          {
+            "label": "Charisma Checks",
+            "field": "charisma"
+          }
+        ]
+      },
+      {
+        "label": "Spell DC Bonus",
+        "type": "spellDCBonus",
+        "fields": []
+      }
+    ],
     "otherSettings": {
       "commonScript": { "file": "rollhandlers/common.js" },
       "scripts": {
