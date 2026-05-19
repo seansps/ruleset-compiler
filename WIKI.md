@@ -370,8 +370,27 @@ Entries are matched from **lowest percentage upward**: the first entry whose `pe
 
 | Property | Description                                                                                                  |
 | -------- | ------------------------------------------------------------------------------------------------------------ |
-| `icon`   | Icon class name from the Realm VTT icon set (e.g. `"icon-fire"`)                                            |
+| `icon`   | Icon class name from the Realm VTT DamageTypes font (see full list below)                                   |
 | `color`  | Named Mantine color — one of `"default"`, `"dark"`, `"gray"`, `"red"`, `"pink"`, `"grape"`, `"violet"`, `"indigo"`, `"blue"`, `"cyan"`, `"teal"`, `"green"`, `"lime"`, `"yellow"`, `"orange"` |
+
+**Available icon values:**
+
+| Icon class          | Icon class         |
+| ------------------- | ------------------ |
+| `icon-acid`         | `icon-mental`      |
+| `icon-bleed`        | `icon-necrotic`    |
+| `icon-bludgeoning`  | `icon-piercing`    |
+| `icon-cold`         | `icon-poison`      |
+| `icon-explosive`    | `icon-precision`   |
+| `icon-fire`         | `icon-psychic`     |
+| `icon-force`        | `icon-radiant`     |
+| `icon-grenade`      | `icon-rifle`       |
+| `icon-handgun`      | `icon-slashing`    |
+| `icon-healing`      | `icon-sonic`       |
+| `icon-holy`         | `icon-spirit`      |
+| `icon-lightning`    | `icon-unholy`      |
+| `icon-magic`        | `icon-vitality`    |
+|                     | `icon-void`        |
 
 If you leave `damageTypes` as `{}` the damage UI still works — damage types just won't show a colored icon.
 
