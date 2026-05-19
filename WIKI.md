@@ -454,6 +454,58 @@ The `secondaryStatScript` receives the same arguments as `damageScript` / `heali
 
 Back-compat: the legacy `slotBased: true` boolean is still read — if `initiativeMode` is missing it's treated as `"slot"`. New rulesets should set `initiativeMode` explicitly.
 
+### Campaign settings
+
+`settings.campaignSettings` defines a list of **per-campaign options** that the GM can toggle from the campaign's settings panel. Use these for house rules and optional systems that some tables want and others don't — the ruleset ships one default, and each campaign overrides it independently. Other campaigns running the same ruleset are unaffected.
+
+It's an array of option definitions:
+
+| Field         | Type   | Description                                                                                          |
+| ------------- | ------ | ---------------------------------------------------------------------------------------------------- |
+| `name`        | string | Display label shown to the GM in the campaign settings panel                                         |
+| `key`         | string | Stable identifier you read at runtime with `api.getSetting(key)` — keep it short and code-friendly    |
+| `description` | string | Help text shown under the option, explaining what it does                                            |
+| `values`      | array  | The available choices. Each is `{ "label": "...", "value": "..." }` — `label` is shown, `value` is returned by `api.getSetting`. The **first entry is the default** until the GM changes it. |
+
+```json
+"campaignSettings": [
+  {
+    "name": "Roll for NPC HP",
+    "key": "rollHp",
+    "description": "When adding NPCs to the Combat Tracker, roll to determine their HP",
+    "values": [
+      { "label": "No",  "value": "no"  },
+      { "label": "Yes", "value": "yes" }
+    ]
+  },
+  {
+    "name": "Track Coin Weight",
+    "key": "coinWeight",
+    "description": "When calculating inventory weight, include coinage (50 coins / pound).",
+    "values": [
+      { "label": "No",  "value": "no"  },
+      { "label": "Yes", "value": "yes" }
+    ]
+  }
+]
+```
+
+**Reading a setting in scripts** — anywhere you have the `api` (rollhandlers, combat-tracker hooks, scripts), call `api.getSetting(key)`. It returns the `value` string of the option the GM currently has selected for this campaign:
+
+```js
+// scripts/on-token-add.js — only roll NPC HP if the GM opted in
+if (api.getSetting("rollHp") === "yes") {
+  // roll hit dice and set the token's HP
+}
+```
+
+```js
+// rollhandlers/encumbrance.js — fold coinage into carried weight when enabled
+const includeCoinage = api.getSetting("coinWeight") === "yes";
+```
+
+The values are plain strings, so a two-choice option is effectively a boolean (`"yes"` / `"no"`), but `values` can hold as many choices as you like (e.g. difficulty tiers, variant rule sets) — `api.getSetting` simply returns whichever `value` is selected.
+
 ### What the compiler does
 
 1. Reads `ruleset.config.json`.

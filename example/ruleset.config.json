@@ -358,7 +358,26 @@
         "currencyFields": []
       }
     },
-    "campaignSettings": [],
+    "campaignSettings": [
+      {
+        "name": "Roll for NPC HP",
+        "key": "rollHp",
+        "description": "When adding NPCs to the Combat Tracker, roll to determine their HP",
+        "values": [
+          { "label": "No", "value": "no" },
+          { "label": "Yes", "value": "yes" }
+        ]
+      },
+      {
+        "name": "Track Coin Weight",
+        "key": "coinWeight",
+        "description": "When calculating inventory weight, include coinage (50 coins / pound).",
+        "values": [
+          { "label": "No", "value": "no" },
+          { "label": "Yes", "value": "yes" }
+        ]
+      }
+    ],
     "tokenSize": [
       { "size": 0.5, "label": "Tiny" },
       { "size": 1, "label": "Medium" },
