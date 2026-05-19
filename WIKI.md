@@ -355,6 +355,8 @@ Entries are matched from **lowest percentage upward**: the first entry whose `pe
 
 `settings.damage.damageTypes` is a plain object mapping each damage type name (e.g. `"fire"`, `"slashing"`) to a display descriptor. These names are what your rollhandlers pass as the damage type when calling the damage system, and what the damage/healing UI shows to the user.
 
+> **The roll must be of type `"damage"`.** Damage typing — the colored icon, resistance/immunity/vulnerability handling, and the Apply Damage UI — only kicks in when the roll is dispatched as a roll of type `"damage"`. That is the final argument to `api.promptRoll(name, formula, modifiers, metadata, 'damage')` (and the `name: "damage"` entry under `rollTypes`). A roll dispatched under any other type (`"attack"`, `"skill"`, a custom type, …) is treated as an untyped roll regardless of what damage-type string you pass in, so the icon won't render and damage won't be reduced/scaled by the target's resistances. Healing works the same way via roll type `"healing"`.
+
 ```json
 "damageTypes": {
   "bludgeoning": { "icon": "icon-bludgeoning", "color": "default" },
