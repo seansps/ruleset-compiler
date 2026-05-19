@@ -370,8 +370,8 @@ Entries are matched from **lowest percentage upward**: the first entry whose `pe
 
 | Property | Description                                                                                                  |
 | -------- | ------------------------------------------------------------------------------------------------------------ |
-| `icon`   | Icon class name from the Realm VTT DamageTypes font (see full list below)                                   |
-| `color`  | Named Mantine color — one of `"default"`, `"dark"`, `"gray"`, `"red"`, `"pink"`, `"grape"`, `"violet"`, `"indigo"`, `"blue"`, `"cyan"`, `"teal"`, `"green"`, `"lime"`, `"yellow"`, `"orange"` |
+| `icon`   | Icon identifier — a Realm VTT DamageTypes glyph (`icon-*`, see list below), a Tabler icon, or a GameIcons icon (see **Using Tabler or GameIcons icons** below) |
+| `color`  | Named Mantine color — one of `"default"`, `"dark"`, `"gray"`, `"red"`, `"pink"`, `"grape"`, `"violet"`, `"indigo"`, `"blue"`, `"cyan"`, `"teal"`, `"green"`, `"lime"`, `"yellow"`, `"orange"` — or any CSS color string (e.g. `"#8b6fc9"`) |
 
 **Available icon values:**
 
@@ -391,6 +391,29 @@ Entries are matched from **lowest percentage upward**: the first entry whose `pe
 | `icon-lightning`    | `icon-unholy`      |
 | `icon-magic`        | `icon-vitality`    |
 |                     | `icon-void`        |
+
+**Using Tabler or GameIcons icons**
+
+`icon` is not limited to the dicefont glyphs above. When the value is **not** a
+Realm dicefont class, Realm VTT falls back to its general icon set, so a damage
+type may also use a Tabler or GameIcons icon:
+
+| Source         | Format                                   | Examples                            |
+| -------------- | ---------------------------------------- | ----------------------------------- |
+| Realm dicefont | `icon-<name>` — lowercase, hyphenated    | `icon-fire`, `icon-slashing`        |
+| Tabler         | `Icon<Name>` — PascalCase, `Icon` prefix | `IconFlame`, `IconLeaf`, `IconBolt` |
+| GameIcons      | `Gi<Name>` — PascalCase, `Gi` prefix     | `GiFire`, `GiPoisonBottle`          |
+
+The name must match the icon's export name **exactly**, including capitalization
+— there is no normalization:
+
+- ✅ `IconLeaf` — resolves to the Tabler leaf icon
+- ❌ `icon-leaf` — the `icon-` prefix makes Realm VTT treat it as a (non-existent) dicefont class, so nothing renders
+- ❌ `leaf` / `iconleaf` — not a recognized export name, so nothing renders
+
+Browse names at <https://tabler.io/icons> (prefix the icon name with `Icon`) and
+<https://react-icons.github.io/react-icons/icons/gi/> (names already include the
+`Gi` prefix). The `color` you set tints the icon regardless of its source.
 
 If you leave `damageTypes` as `{}` the damage UI still works — damage types just won't show a colored icon.
 
