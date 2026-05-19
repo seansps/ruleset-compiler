@@ -127,7 +127,7 @@ List records set `"isList": true` and support extra fields like `showAddButton`,
 
 ### Full example
 
-Here's a complete `ruleset.config.json` you can copy as a starting point. It defines a small ruleset with characters, NPCs, items, abilities, a few list types, and wires up rollhandlers + scripts from external files.
+Here's an example `ruleset.config.json` you can copy as a starting point. It defines a small ruleset with characters, NPCs, items, abilities, a few list types, and wires up rollhandlers + scripts from external files. Another, more complete can be found in `tools/ruleset-compiler/example/ruleset.config.json`.
 
 ```json
 {
@@ -307,6 +307,95 @@ Here's a complete `ruleset.config.json` you can copy as a starting point. It def
   }
 }
 ```
+
+#### Some Things to Note
+
+- The `filters` field on record types defines filters available in the Compendium for users. Using `dynamic` is a good choice here because it tells the VTT to build the options based on what is set in the database. You can also provide an array of string values that they can select from as options for that filter.
+- The `hasToken` field is a newer feature for record types. By default all Characters and NPCs have a token. If you want to define other record types such as Vehicles that have tokens, set `hasToken` to true.
+- The `icon` field can be set to a Tabler icon (https://tabler.io/icons) or a React GameIcon icon (https://react-icons.github.io/react-icons/icons/gi/). You should set one on all non-list record types (besides Characters and NPCs which have defaults) so that they have proper icons within the VTT.
+
+#### Health indicator
+
+`settings.healthIndicator` controls the colored bar shown on tokens on the map:
+
+| Field                | Type    | Description                                                                                  |
+| -------------------- | ------- | -------------------------------------------------------------------------------------------- |
+| `disabled`           | boolean | Set `true` to hide the health bar entirely for all tokens in this ruleset                    |
+| `maxHealthField`     | string  | The `data.*` field name that holds a token's maximum HP (e.g. `"maxHp"`, `"hitpoints"`)     |
+| `currentHealthField` | string  | The `data.*` field name that holds a token's current HP (e.g. `"curHp"`, `"curhp"`)         |
+| `color`              | array   | Threshold list — see below                                                                   |
+
+The `color` array defines how the bar looks at different HP percentages. Each entry has:
+
+| Key          | Description                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------------- |
+| `percentage` | The HP percentage **at or below which** this entry applies (0 = dead, 100 = fully healthy)         |
+| `color`      | Hex color string for the bar at this threshold (e.g. `"#00FF00"`)                                  |
+| `label`      | Short text shown to describe the health state — this is the **health text** (e.g. `"Bloodied"`)    |
+
+Entries are matched from **lowest percentage upward**: the first entry whose `percentage` is ≥ the current HP% is used. A typical setup has `0` ("Dead"), a handful of intermediate bands, and `100` ("Healthy"). At 0 HP the `0`-entry fires; at full HP the `100`-entry fires.
+
+```json
+"healthIndicator": {
+  "disabled": false,
+  "maxHealthField": "maxHp",
+  "currentHealthField": "curHp",
+  "color": [
+    { "percentage": 0,   "color": "#4A0000", "label": "Dead"     },
+    { "percentage": 1,   "color": "#8B0000", "label": "Critical" },
+    { "percentage": 25,  "color": "#CC4400", "label": "Bloodied" },
+    { "percentage": 50,  "color": "#FF8C00", "label": "Injured"  },
+    { "percentage": 75,  "color": "#B8860B", "label": "Hurt"     },
+    { "percentage": 100, "color": "#00FF00", "label": "Healthy"  }
+  ]
+}
+```
+
+#### Damage types
+
+`settings.damage.damageTypes` is a plain object mapping each damage type name (e.g. `"fire"`, `"slashing"`) to a display descriptor. These names are what your rollhandlers pass as the damage type when calling the damage system, and what the damage/healing UI shows to the user.
+
+```json
+"damageTypes": {
+  "bludgeoning": { "icon": "icon-bludgeoning", "color": "default" },
+  "slashing":    { "icon": "icon-slashing",    "color": "default" },
+  "fire":        { "icon": "icon-fire",        "color": "orange"  },
+  "cold":        { "icon": "icon-cold",        "color": "blue"    },
+  "lightning":   { "icon": "icon-lightning",   "color": "yellow"  },
+  "acid":        { "icon": "icon-acid",        "color": "lime"    },
+  "poison":      { "icon": "icon-poison",      "color": "green"   },
+  "healing":     { "icon": "icon-healing",     "color": "teal"    }
+}
+```
+
+| Property | Description                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------------------------------ |
+| `icon`   | Icon class name from the Realm VTT icon set (e.g. `"icon-fire"`)                                            |
+| `color`  | Named Mantine color — one of `"default"`, `"dark"`, `"gray"`, `"red"`, `"pink"`, `"grape"`, `"violet"`, `"indigo"`, `"blue"`, `"cyan"`, `"teal"`, `"green"`, `"lime"`, `"yellow"`, `"orange"` |
+
+If you leave `damageTypes` as `{}` the damage UI still works — damage types just won't show a colored icon.
+
+#### Secondary health stat
+
+`settings.damage` supports a **secondary stat** — a second resource track shown alongside HP (e.g. Strain, Stress, Trauma). When enabled, the UI shows a separate damage/healing button for this stat and routes its damage through a dedicated script.
+
+| Field                  | Type    | Description                                                                                           |
+| ---------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| `enableSecondaryStat`  | boolean | Set `true` to enable the secondary stat track                                                         |
+| `secondaryStatLabel`   | string  | Display name for the stat (e.g. `"Strain"`, `"Stress"`, `"Trauma"`)                                   |
+| `secondaryStatScript`  | file    | Script that applies damage/healing to the secondary stat — same `{ "file": "..." }` pattern as `damageScript` |
+| `secondaryStatIcon`    | string  | Tabler icon name for the stat (e.g. `"IconBrain"`, `"IconFlame"`)                                     |
+| `secondaryStatColor`   | string  | Named Mantine color for the stat's UI elements (same options as damage type colors above)              |
+
+```json
+"enableSecondaryStat": true,
+"secondaryStatLabel": "Strain",
+"secondaryStatScript": { "file": "scripts/strain-apply.js" },
+"secondaryStatIcon": "IconBrain",
+"secondaryStatColor": "violet"
+```
+
+The `secondaryStatScript` receives the same arguments as `damageScript` / `healingScript` and is responsible for reading and writing whatever fields you use to track this secondary resource (e.g. `data.strain`, `data.strainThreshold`).
 
 ### Combat tracker — initiative modes
 
@@ -563,7 +652,7 @@ When a dropdown is configured to pull its options from a **record query** (e.g. 
 The stored payload intentionally only carries `_id` and `name` — it's a pointer, not a cached copy. To get the full record, look it up by `_id`:
 
 ```js
-const raw = api.getValue("data.ability");     // '{"_id":"…","name":"Second Wind"}'
+const raw = api.getValue("data.ability"); // '{"_id":"…","name":"Second Wind"}'
 const { _id, name } = JSON.parse(raw);
 api.getRecord("abilities", _id, (rec) => {
   // rec is the full, fresh record

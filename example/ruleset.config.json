@@ -104,6 +104,21 @@
       "filters": {}
     },
     {
+      "name": "Vehicles",
+      "type": "vehicles",
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        { "name": "Main", "file": "vehicles-main.html" },
+        { "name": "Rules", "file": "vehicles-rules.html" }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "GiCaravel",
+      "hasToken": true,
+      "filters": {}
+    },
+    {
       "name": "Skill List",
       "type": "skill_list",
       "isList": true,
@@ -212,12 +227,27 @@
       "enableHealing": true,
       "damageScript": { "file": "scripts/damage-apply.js" },
       "healingScript": { "file": "scripts/healing-apply.js" },
-      "damageTypes": {},
-      "enableSecondaryStat": false,
-      "secondaryStatLabel": "",
-      "secondaryStatScript": "",
-      "secondaryStatIcon": "",
-      "secondaryStatColor": ""
+      "damageTypes": {
+        "bludgeoning": { "icon": "icon-bludgeoning", "color": "default" },
+        "slashing":    { "icon": "icon-slashing",    "color": "default" },
+        "piercing":    { "icon": "icon-piercing",    "color": "default" },
+        "fire":        { "icon": "icon-fire",        "color": "orange"  },
+        "cold":        { "icon": "icon-cold",        "color": "blue"    },
+        "lightning":   { "icon": "icon-lightning",   "color": "yellow"  },
+        "acid":        { "icon": "icon-acid",        "color": "lime"    },
+        "poison":      { "icon": "icon-poison",      "color": "green"   },
+        "necrotic":    { "icon": "icon-necrotic",    "color": "dark"    },
+        "radiant":     { "icon": "icon-radiant",     "color": "yellow"  },
+        "force":       { "icon": "icon-force",       "color": "violet"  },
+        "psychic":     { "icon": "icon-psychic",     "color": "grape"   },
+        "thunder":     { "icon": "icon-thunder",     "color": "indigo"  },
+        "healing":     { "icon": "icon-healing",     "color": "teal"    }
+      },
+      "enableSecondaryStat": true,
+      "secondaryStatLabel": "Strain",
+      "secondaryStatScript": { "file": "scripts/strain-apply.js" },
+      "secondaryStatIcon": "IconBrain",
+      "secondaryStatColor": "violet"
     },
     "effects": [
       {
