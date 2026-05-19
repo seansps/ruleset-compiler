@@ -8,15 +8,19 @@ CLI tool that compiles a ruleset directory into a JSON payload and uploads it to
 src/
   cli.js         — CLI entry point (commander-based)
   compiler.js    — Reads ruleset.config.json, resolves file refs, builds API payload
-  api-client.js  — Realm VTT API client (auth, campaign lookup, CRUD for rulesets + records)
+  api-client.js  — Realm VTT API client (auth, campaign lookup, CRUD for rulesets + records + effects)
   auth.js        — Builds an authenticated client from CLI options (token or email/password)
   records.js     — `records` subcommand — CSV import with upsert-by-name
-  csv.js         — CSV parser (quoted fields, recordType/name/data columns)
+  effects.js     — `effects` subcommand — CSV import of effects with upsert-by-name
+  csv.js         — CSV parser (quoted fields; record CSVs use recordType/name/data columns,
+                   effect CSVs use top-level field-path columns)
   prompts.js     — Terminal prompts (text, password, select)
 example/
   ruleset.config.json  — Reference config showing every supported setting
                          (read this first when you need to know what shape a
                          ruleset config can take).
+  test-records.csv     — Runnable sample for `records` import.
+  test-effects.csv     — Runnable sample for `effects` import.
 WIKI.md          — Authoring guide for ruleset authors; deeper than the README.
 ```
 
@@ -63,6 +67,37 @@ WIKI.md          — Authoring guide for ruleset authors; deeper than the README
   everything else → `/records` (with `recordType` kept in the create body).
 - `example/test-records.csv` is a runnable sample — one NPC (with a 5e/Level Up
   `actions` list) and one item.
+
+## Effects Import (CSV)
+
+`effects <csvfile>` imports status effects into a campaign via the `/effects` API.
+
+- **Why it's separate from `records`:** effects are not records. They have no
+  `recordType`, no `data` wrapper, and no `identified` / `unidentifiedName`. Their
+  fields (`name`, `description`, `stackable`, `rules`, `duration`, …) live at the top
+  level. The schema is `src/services/effects/effects.schema.ts` in the realm15-vtt
+  backend.
+- **CSV shape:** there is no `recordType` column and no `name`-in-column-2 convention.
+  *Every* header is a dot-separated path into the effect object itself. One header
+  **must** be `name` — it is the upsert lookup key. `csv.js` enforces this.
+- **Cell coercion:** identical to records (`coerceCell`) — `{`/`[` cells parse as JSON,
+  `true`/`false` become booleans, round-tripping numbers become numbers. The `rules`
+  array is authored as a single JSON cell.
+- **No list `_id` stamping:** unlike record list entries, effect `rules` are plain
+  config objects, not list sub-records — `readEffectsCSV` does *not* call
+  `assignListIds`, so rules stay exactly as authored.
+- **Create-only defaults:** the API requires `name`, `description` and `stackable` on
+  create. Since empty CSV cells are skipped (so a blank column never clobbers on
+  update), `effects.js` fills `description: ""` / `stackable: false` **only** on the
+  create path (`withCreateDefaults`) — an update never overwrites them with defaults.
+- **Target campaign / upsert / delay:** same as `records` — `--campaign <id>` or
+  `--invite <code>`, look up by name within the campaign (`findEffect`), `PATCH` if
+  found else `POST`, `--delay` between calls. The PATCH body omits `name` and
+  `campaignId`.
+- **Endpoint:** always `/effects` (`findEffect` / `createEffect` / `updateEffect` in
+  `api-client.js`) — no per-recordType routing.
+- `example/test-effects.csv` is a runnable sample — three effects (a condition with
+  an AC-penalty rule, a timed buff, and a stackable damage-over-time condition).
 
 ## Dependencies
 

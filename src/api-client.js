@@ -211,4 +211,74 @@ export class RulesetAPIClient {
 
     return res.json();
   }
+
+  /**
+   * Find an existing effect by name within a campaign.
+   * GET /effects?campaignId=...&name=...
+   * Returns the matching effect object, or null if none found.
+   */
+  async findEffect(campaignId, name) {
+    const params = new URLSearchParams({
+      campaignId,
+      name,
+      $limit: "1",
+    });
+
+    const res = await fetch(`${this.baseUrl}/effects?${params}`, {
+      headers: this._headers(),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to query effects (${res.status}): ${text}`);
+    }
+
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : data.data || [];
+    return items.find((e) => e.name === name) || null;
+  }
+
+  /**
+   * Create a new effect.
+   * POST /effects
+   */
+  async createEffect(payload) {
+    const res = await fetch(`${this.baseUrl}/effects`, {
+      method: "POST",
+      headers: this._headers(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to create effect (${res.status}): ${text}`);
+    }
+
+    return res.json();
+  }
+
+  /**
+   * Update an existing effect by _id.
+   * PATCH /effects/:id
+   *
+   * The PATCH body omits `name` (the upsert lookup key) and `campaignId`
+   * (the effect was already matched within its campaign) so they aren't
+   * re-sent on update.
+   */
+  async updateEffect(id, payload) {
+    const { name, campaignId, ...body } = payload;
+
+    const res = await fetch(`${this.baseUrl}/effects/${id}`, {
+      method: "PATCH",
+      headers: this._headers(),
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to update effect (${res.status}): ${text}`);
+    }
+
+    return res.json();
+  }
 }

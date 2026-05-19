@@ -165,3 +165,44 @@ export async function readRecordsCSV(filePath) {
     };
   });
 }
+
+/**
+ * Read a CSV file of effect definitions and return structured effect objects.
+ *
+ * Effects differ from records: their fields live at the top level (there is
+ * no `data` wrapper) and they have no `recordType`. So every header is a
+ * dot-separated path into the effect object itself, and one of those headers
+ * must be `name` — it is the upsert key. Each cell value is coerced
+ * (JSON / boolean / number / string), so the `rules` array is authored as a
+ * JSON cell. Empty cells are skipped so a blank column never clobbers an
+ * existing value on update.
+ *
+ * Note: unlike records, effect `rules` are plain config objects (not list
+ * sub-records), so no `_id`s are stamped onto them.
+ */
+export async function readEffectsCSV(filePath) {
+  const text = await readFile(filePath, "utf-8");
+  const rows = parseCSVRows(text);
+
+  if (rows.length < 2) {
+    throw new Error("CSV must have a header row and at least one data row");
+  }
+
+  const [headers, ...dataRows] = rows;
+
+  if (!headers.includes("name")) {
+    throw new Error('Effects CSV must have a "name" column');
+  }
+
+  return dataRows.map((row) => {
+    const effect = {};
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i];
+      if (!header) continue;
+      const raw = row[i] || "";
+      if (raw === "") continue; // skip empty cells — don't clobber on update
+      setPath(effect, header, coerceCell(raw));
+    }
+    return effect;
+  });
+}

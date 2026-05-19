@@ -1,0 +1,4 @@
+name,description,category,stackable,tokenMenu,duration,durationUnit,expiresAtRoll,rules
+CSV Test Prone,The creature is lying on the ground and has disadvantage on attack rolls.,Conditions,false,true,,,,"[{""type"":""ac penalty"",""field"":""ac"",""valueType"":""number"",""value"":2}]"
+CSV Test Blessed,Blessed by divine favor — add 1d4 to attack rolls and saving throws.,Buffs,false,true,60,seconds,false,"[{""type"":""attack bonus"",""field"":""all"",""valueType"":""string"",""value"":""1d4""}]"
+CSV Test Burning,The creature is on fire and takes 1d6 fire damage at the start of each of its turns.,Conditions,true,true,3,rounds,,"[{""type"":""damage"",""field"":""fire"",""valueType"":""string"",""value"":""1d6""}]"
