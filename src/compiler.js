@@ -130,6 +130,11 @@ export async function compile(directory, { verbose = false } = {}) {
       compiled.jsonImport = await resolveFileRefs(compiled.jsonImport, dir, verbose);
     }
 
+    // Resolve pdfExport file references (script can use { file: "..." })
+    if (compiled.pdfExport) {
+      compiled.pdfExport = await resolveFileRefs(compiled.pdfExport, dir, verbose);
+    }
+
     // Resolve wizard step HTML files (file → layout, mirroring tabs)
     if (compiled.wizard && Array.isArray(compiled.wizard.steps)) {
       compiled.wizard = {
