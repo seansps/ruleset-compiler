@@ -3,6 +3,14 @@
   "description": "A custom tabletop RPG ruleset for Realm VTT",
   "version": 1,
 
+  "compatibility": [
+    {
+      "rulesetId": "66e37156b49c73d33593dbfd",
+      "name": "D&D 5e (2024)",
+      "typeMap": { "species": "heritage", "subclass": "archetypes" }
+    }
+  ],
+
   "records": [
     {
       "name": "Characters",

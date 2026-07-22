@@ -195,6 +195,11 @@ export async function compile(directory, { verbose = false } = {}) {
   if (config.version !== undefined) payload.version = config.version;
   if (config.published !== undefined) payload.published = config.published;
 
+  // Cross-ruleset import compatibility. Referenced by rulesetId (stable across
+  // dev/prod for official rulesets), so this passes through verbatim with no
+  // API lookup — keeping compile() pure. See the backend rulesetCompatibilitySchema.
+  if (config.compatibility !== undefined) payload.compatibility = config.compatibility;
+
   if (verbose) {
     console.log(`Compiled: ${payload.name}`);
     console.log(`  Records: ${records.length}`);

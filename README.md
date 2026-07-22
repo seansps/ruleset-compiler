@@ -82,6 +82,31 @@ This is the main configuration file. It defines the ruleset name, record types, 
 | `version` | number | Version number |
 | `records` | array | Record type definitions (see below) |
 | `settings` | object | Ruleset settings — rollTypes, damage, effects, etc. |
+| `compatibility` | array | Cross-ruleset import compatibility (see below) |
+
+### Compatibility
+
+`compatibility` lets a ruleset import content from other rulesets, remapping record
+types that are named differently. Each entry declares a source ruleset (by its
+`rulesetId`, which is stable across dev/prod for official rulesets) and a `typeMap`
+of `their record type → this ruleset's record type`. Record types not in the map
+import unchanged (they just won't be compendium-searchable under this ruleset).
+
+Modules built for a listed ruleset then appear in this ruleset's in-campaign Modules
+window, and on import their remappable record types are converted automatically.
+
+```json
+"compatibility": [
+  {
+    "rulesetId": "66e37156b49c73d33593dbfd",
+    "name": "D&D 5e (2024)",
+    "typeMap": { "species": "heritage", "subclass": "archetypes" }
+  }
+]
+```
+
+Each ruleset declares its own compatibility independently — e.g. Level Up maps 5e's
+`species` → `heritage`, while 5e maps Level Up's `heritage` → `species`.
 
 ### Records
 
