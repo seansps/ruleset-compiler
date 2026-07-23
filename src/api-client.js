@@ -72,8 +72,18 @@ export class RulesetAPIClient {
       headers: this._headers(),
     });
 
-    if (!res.ok) return null;
-    return res.json();
+    if (res.ok) return res.json();
+
+    // Fall back to the owned-rulesets list — GET /rulesets/:id can 404 in some
+    // contexts, but the list endpoint (used by the interactive picker) is
+    // reliable and still lets us resolve the name for the overwrite check.
+    try {
+      const owned = await this.listOwnedRulesets();
+      const items = Array.isArray(owned) ? owned : owned.data || [];
+      return items.find((r) => r._id === id) || null;
+    } catch {
+      return null;
+    }
   }
 
   /**

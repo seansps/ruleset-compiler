@@ -209,10 +209,13 @@ async function runRulesets(directory, opts) {
     console.error(`Updating ruleset ${rulesetId}...`);
     const result = await client.updateRuleset(rulesetId, payload);
     console.error(`Updated! ID: ${result._id}`);
-    if (existingName != null && existingName !== result.name) {
+    if (existingName == null) {
+      // Couldn't resolve the prior name — say so rather than implying a match.
+      console.error(`Name: ${result.name} (could not verify previous name)`);
+    } else if (existingName !== result.name) {
       console.error(`Name: ${result.name} (overwrote "${existingName}")`);
     } else {
-      console.error(`Name: ${result.name}`);
+      console.error(`Name: ${result.name} (matched existing)`);
     }
   }
 }
