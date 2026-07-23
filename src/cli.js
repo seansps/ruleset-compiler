@@ -4,7 +4,7 @@ import { Command } from "commander";
 import { writeFile } from "node:fs/promises";
 import { compile } from "./compiler.js";
 import { createAuthenticatedClient } from "./auth.js";
-import { promptSelect } from "./prompts.js";
+import { promptSelect, promptConfirm } from "./prompts.js";
 import { runRecords } from "./records.js";
 import { runEffects } from "./effects.js";
 
@@ -141,6 +141,7 @@ async function runRulesets(directory, opts) {
   // 4. Select target
   let rulesetId = opts.id;
   let isNew = opts.new;
+  let existingName; // name of the ruleset being overwritten (if known)
 
   if (client && !rulesetId && !isNew) {
     if (opts.verbose) console.error("Fetching owned rulesets...");
@@ -157,6 +158,7 @@ async function runRulesets(directory, opts) {
       );
       if (selected) {
         rulesetId = selected._id;
+        existingName = selected.name;
       } else {
         isNew = true;
       }
@@ -184,10 +186,34 @@ async function runRulesets(directory, opts) {
     console.error(`Created! ID: ${result._id}`);
     console.error(`Name: ${result.name}`);
   } else {
+    // Determine the name of the ruleset we're about to overwrite. If the
+    // target came from --id we don't have it yet, so fetch it.
+    if (existingName === undefined) {
+      const existing = await client.getRuleset(rulesetId);
+      existingName = existing ? existing.name : null;
+    }
+
+    // Sanity check: if the on-disk name doesn't match the ruleset being
+    // overwritten, make the user confirm before clobbering it.
+    if (existingName != null && existingName !== payload.name) {
+      console.error(
+        `\nWARNING: name mismatch — this will overwrite "${existingName}" with "${payload.name}".`
+      );
+      const ok = await promptConfirm("Continue?");
+      if (!ok) {
+        console.error("Aborted.");
+        return;
+      }
+    }
+
     console.error(`Updating ruleset ${rulesetId}...`);
     const result = await client.updateRuleset(rulesetId, payload);
     console.error(`Updated! ID: ${result._id}`);
-    console.error(`Name: ${result.name}`);
+    if (existingName != null && existingName !== result.name) {
+      console.error(`Name: ${result.name} (overwrote "${existingName}")`);
+    } else {
+      console.error(`Name: ${result.name}`);
+    }
   }
 }
 

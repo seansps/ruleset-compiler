@@ -62,6 +62,15 @@ export function promptPassword(question) {
 }
 
 /**
+ * Prompt for a yes/no confirmation. Returns true only for an explicit yes.
+ * Defaults to false (no) on empty input.
+ */
+export async function promptConfirm(question) {
+  const answer = await prompt(`${question} [y/N]: `);
+  return /^y(es)?$/i.test(answer);
+}
+
+/**
  * Prompt the user to select from a numbered list, or create new.
  * Returns the selected item or null for "create new".
  */

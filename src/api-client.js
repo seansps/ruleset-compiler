@@ -63,6 +63,20 @@ export class RulesetAPIClient {
   }
 
   /**
+   * Fetch a single ruleset by ID.
+   * GET /rulesets/:id
+   * Returns the ruleset object, or null if it can't be fetched (e.g. 404).
+   */
+  async getRuleset(id) {
+    const res = await fetch(`${this.baseUrl}/rulesets/${id}`, {
+      headers: this._headers(),
+    });
+
+    if (!res.ok) return null;
+    return res.json();
+  }
+
+  /**
    * Create a new ruleset.
    * POST /rulesets
    */
