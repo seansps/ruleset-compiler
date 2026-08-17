@@ -2,27 +2,17 @@
 
 CLI tool that compiles a ruleset directory into a JSON payload and uploads it to the Realm VTT API.
 
-## Project Structure
+## Communication
 
-```
-src/
-  cli.js         — CLI entry point (commander-based)
-  compiler.js    — Reads ruleset.config.json, resolves file refs, builds API payload
-  api-client.js  — Realm VTT API client (auth, campaign lookup, CRUD for rulesets + records + effects)
-  auth.js        — Builds an authenticated client from CLI options (token or email/password)
-  records.js     — `records` subcommand — CSV import with upsert-by-name
-  effects.js     — `effects` subcommand — CSV import of effects with upsert-by-name
-  csv.js         — CSV parser (quoted fields; record CSVs use recordType/name/data columns,
-                   effect CSVs use top-level field-path columns)
-  prompts.js     — Terminal prompts (text, password, select)
-example/
-  ruleset.config.json  — Reference config showing every supported setting
-                         (read this first when you need to know what shape a
-                         ruleset config can take).
-  test-records.csv     — Runnable sample for `records` import.
-  test-effects.csv     — Runnable sample for `effects` import.
-WIKI.md          — Authoring guide for ruleset authors; deeper than the README.
-```
+- Answer at the altitude asked. Do not restate what the code already shows.
+- Do not narrate steps as you take them, and do not explain reasoning that was not requested.
+- Report what changed and anything that broke or is still outstanding. Skip the rest — no preamble, no recap of small edits, no summarizing the summary.
+
+## Where to look first
+
+- `example/ruleset.config.json` — reference config showing every supported setting. Read this first when you need to know what shape a ruleset config can take.
+- `WIKI.md` — authoring guide for ruleset authors; deeper than the README.
+- `example/test-records.csv` / `example/test-effects.csv` — runnable samples for the `records` and `effects` imports.
 
 ## How It Works
 
@@ -99,11 +89,7 @@ WIKI.md          — Authoring guide for ruleset authors; deeper than the README
 - `example/test-effects.csv` is a runnable sample — three effects (a condition with
   an AC-penalty rule, a timed buff, and a stackable damage-over-time condition).
 
-## Dependencies
-
-- `commander` for CLI parsing
-- Node.js built-ins only (no bundler, no build step)
-- Requires Node.js 18+ (uses native `fetch`)
+No bundler and no build step — Node.js built-ins plus `commander`, requiring Node 18+ for native `fetch`.
 
 ## Combat Tracker — Initiative Mode
 

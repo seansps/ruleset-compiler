@@ -184,6 +184,20 @@ export async function compile(directory, { verbose = false } = {}) {
     );
   }
 
+  // For otherSettings.campaignPanel, transform file → layout (mirroring tabs).
+  // A bare { file } inside it was already inlined by resolveFileRefs when the
+  // ref was the whole `layout` value; this handles the tab-style shorthand
+  // where `file` sits next to name/gmOnly/width/height.
+  if (settings.otherSettings?.campaignPanel?.file) {
+    const { file, ...rest } = settings.otherSettings.campaignPanel;
+    const filePath = join(dir, file);
+    if (verbose) console.log(`  Reading campaign panel: ${file}`);
+    settings.otherSettings.campaignPanel = {
+      ...rest,
+      layout: await readFile(filePath, "utf-8"),
+    };
+  }
+
   // Build final payload
   const payload = {
     name: config.name,

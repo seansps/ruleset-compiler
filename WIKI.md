@@ -506,6 +506,77 @@ const includeCoinage = api.getSetting("coinWeight") === "yes";
 
 The values are plain strings, so a two-choice option is effectively a boolean (`"yes"` / `"no"`), but `values` can hold as many choices as you like (e.g. difficulty tiers, variant rule sets) — `api.getSetting` simply returns whichever `value` is selected.
 
+### Campaign variables
+
+Where campaign *settings* are GM-selected configuration, campaign **variables** are **runtime state** the ruleset itself reads and writes during play: dice pools, tension tracks, doom counters, a bag of tokens. They are persisted on the campaign, synced live to every client, and writable from scripts on any client (players included).
+
+Values must be JSON — strings, numbers, booleans, `null`, arrays, or plain objects. The backend enforces limits (100 variables per campaign, 8 KB per value, 64 KB total, nesting up to 4 levels, names of letters/digits/spaces/`_ . : -` up to 64 chars).
+
+**Script API** — available anywhere you have `api`:
+
+```js
+// Read
+const all = api.getCampaignVariables();        // whole map, e.g. { omenDice: 13, bag: [...] }
+const omen = api.getCampaignVariable("omenDice"); // one value, undefined if unset
+
+// Write (returns a promise resolving with the updated map; callback form also supported)
+await api.setCampaignVariable("omenDice", 14);
+await api.clearCampaignVariable("omenDice");
+
+// Atomic read-modify-write — use for counters/pools so rapid updates can't
+// lose increments (the updater receives the current value):
+await api.updateCampaignVariable("omenDice", (current) => (current || 0) + 1);
+```
+
+Writes from one client are serialized, so several `setCampaignVariable` calls in a row all land. Writes from different clients are last-write-wins — prefer `updateCampaignVariable` for anything incremented.
+
+**Visibility warning:** campaign variables are synced to *every* client in the campaign. Hiding a value in the UI (e.g. a GM-only panel) is presentation, not secrecy — do not store information players must never see.
+
+The GM can inspect and hand-edit all variables in **View → Campaign Values** (the raw editor tab), which also lets them repair state if a script misbehaves.
+
+### onCampaignLoad
+
+`settings.otherSettings.onCampaignLoad` is a script fired **once per campaign entry, on GM clients only** (owner or Co-GM), after the campaign and ruleset finish loading. Use it to seed default campaign variables:
+
+```json
+"otherSettings": {
+  "onCampaignLoad": { "file": "scripts/onCampaignLoad.js" }
+}
+```
+
+```js
+// scripts/onCampaignLoad.js — MUST be idempotent: it runs on every GM entry,
+// not once per campaign, so only set what isn't already set.
+if (api.getCampaignVariable("omenDice") === undefined) {
+  api.setCampaignVariable("omenDice", 13);
+  api.setCampaignVariable("bag", ["safe","safe","safe","safe","safe","safe","safe","safe","omen"]);
+}
+```
+
+### Campaign panel (Campaign Values window)
+
+`settings.otherSettings.campaignPanel` gives the campaign a ruleset-defined window — shown under **View → Campaign Values** (or your custom name) — rendering a layout with the **same HTML syntax as record tabs**, bound to the campaign variables instead of a record. Field `name` attributes map to variable names (`name="omenDice"` reads/writes `api.getCampaignVariable("omenDice")`), and `<script>` blocks plus `onclick`/`onchange` handlers work exactly as in tabs.
+
+| Field    | Type    | Description                                                                       |
+| -------- | ------- | --------------------------------------------------------------------------------- |
+| `name`   | string  | Window title and View-menu label. Defaults to "Campaign Values".                  |
+| `file` / `layout` | string | The layout HTML — use `"file"` (tab-style, compiled to `layout`) or inline `layout`. |
+| `gmOnly` | boolean | If true, only the GM and Co-GMs see the menu entry and panel. Default false (players see it too). |
+| `width` / `height` | number | Default window size in pixels (users' resizes persist per campaign).    |
+
+```json
+"otherSettings": {
+  "campaignPanel": {
+    "name": "Omen Dice",
+    "file": "layouts/campaignPanel.html",
+    "width": 420,
+    "height": 360
+  }
+}
+```
+
+The menu entry only appears when the panel is defined (or, for GMs, when any variables exist — that opens the raw editor). The window toggles with the `\` key. Inside the layout, branch GM-only *sections* on `isGM` in scripts — but remember the visibility warning above: this hides, it does not protect.
+
 ### What the compiler does
 
 1. Reads `ruleset.config.json`.
