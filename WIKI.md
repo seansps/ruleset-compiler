@@ -560,6 +560,7 @@ if (api.getCampaignVariable("omenDice") === undefined) {
 | Field    | Type    | Description                                                                       |
 | -------- | ------- | --------------------------------------------------------------------------------- |
 | `name`   | string  | Window title and View-menu label. Defaults to "Campaign Values".                  |
+| `icon`   | string  | Tabler icon name for the View-menu entry (e.g. `"IconSparkle"`). Defaults to `IconClipboardList`. |
 | `file` / `layout` | string | The layout HTML — use `"file"` (tab-style, compiled to `layout`) or inline `layout`. |
 | `gmOnly` | boolean | If true, only the GM and Co-GMs see the menu entry and panel. Default false (players see it too). |
 | `width` / `height` | number | Default window size in pixels (users' resizes persist per campaign).    |
@@ -568,6 +569,7 @@ if (api.getCampaignVariable("omenDice") === undefined) {
 "otherSettings": {
   "campaignPanel": {
     "name": "Omen Dice",
+    "icon": "IconSparkle",
     "file": "layouts/campaignPanel.html",
     "width": 420,
     "height": 360
