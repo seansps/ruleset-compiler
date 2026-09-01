@@ -454,6 +454,22 @@ The `secondaryStatScript` receives the same arguments as `damageScript` / `heali
 
 Back-compat: the legacy `slotBased: true` boolean is still read — if `initiativeMode` is missing it's treated as `"slot"`. New rulesets should set `initiativeMode` explicitly.
 
+### Combat tracker — additional fields
+
+`settings.combatTracker.additionalFields` are the extra columns rendered on each tracker row (HP, AC, and so on). Each entry is:
+
+| Field          | Type    | Description                                                                                          |
+| -------------- | ------- | ---------------------------------------------------------------------------------------------------- |
+| `field`        | string  | Data path on the record. Dot notation (`hitpoints`) or array lookup (`skills[name=Athletics].data.rank`) |
+| `label`        | string  | Column header                                                                                        |
+| `type`         | string  | `"string"` or `"number"`                                                                             |
+| `width`        | number  | Column width in pixels                                                                               |
+| `editable`     | boolean | Whether the GM can type into it                                                                      |
+| `expandedOnly` | boolean | When `true`, the column is hidden until the GM ticks **Show More Fields** in the tracker's Menu (GM only, off by default) |
+| `onChange`     | script  | JS run after the value is patched                                                                    |
+
+The field must exist on both NPCs and characters in the ruleset.
+
 ### Campaign settings
 
 `settings.campaignSettings` defines a list of **per-campaign options** that the GM can toggle from the campaign's settings panel. Use these for house rules and optional systems that some tables want and others don't — the ruleset ships one default, and each campaign overrides it independently. Other campaigns running the same ruleset are unaffected.

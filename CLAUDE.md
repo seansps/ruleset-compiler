@@ -115,3 +115,11 @@ When advising on a new ruleset, pick the mode that matches the source system:
 | Daggerheart / PBTA / Forged in the Dark | `manual` (with `groupBySide: false`) | `manual` | — |
 
 The example in `example/ruleset.config.json` and the deeper docs in `WIKI.md` ("Combat tracker — initiative modes") show the full JSON shape.
+
+## Language
+
+All writing uses **American English**. This covers UI copy, marketing text, docs,
+comments, commit messages, and anything else that ships. No British English:
+write "color" not "colour", "organization" not "organisation", "math" not
+"maths", "license" not "licence", "traveling" not "travelling", "gray" not
+"grey". No em dashes in user-facing copy either.
