@@ -132,3 +132,52 @@ test("compile omits compatibility when absent from config", async () => {
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("compile preserves panel definitions and resolves their HTML files", async () => {
+  const dir = await makeRulesetDir({
+    ...baseConfig,
+    records: [
+      {
+        ...baseConfig.records[0],
+        tabs: [
+          {
+            name: "Main",
+            layout:
+              '<panel paneltype="attributes_panel" field="attributes"></panel>',
+          },
+        ],
+      },
+      {
+        name: "Attributes Panel",
+        type: "attributes_panel",
+        isPanel: true,
+        tabs: [{ name: "Main", file: "panels/attributes.html" }],
+      },
+    ],
+  });
+  try {
+    const { mkdir } = await import("node:fs/promises");
+    await mkdir(join(dir, "panels"), { recursive: true });
+    await writeFile(
+      join(dir, "panels", "attributes.html"),
+      '<numberfield field="strength"></numberfield>',
+      "utf-8",
+    );
+
+    const payload = await compile(dir);
+    const panel = payload.records.find((record) => record.type === "attributes_panel");
+    assert.equal(panel.isPanel, true);
+    assert.equal(panel.hideFromCompendium, true);
+    assert.equal(panel.minY, 60);
+    assert.equal(
+      panel.tabs[0].layout,
+      '<numberfield field="strength"></numberfield>',
+    );
+    assert.equal(
+      payload.records[0].tabs[0].layout,
+      '<panel paneltype="attributes_panel" field="attributes"></panel>',
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

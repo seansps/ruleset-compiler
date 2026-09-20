@@ -110,7 +110,7 @@ Each ruleset declares its own compatibility independently — e.g. Level Up maps
 
 ### Records
 
-Each record defines a type that players and GMs interact with (characters, items, spells, etc.). There are two kinds:
+Each record definition is a standard record, list, or reusable panel:
 
 **Standard records** — full record sheets with tabs:
 
@@ -166,6 +166,30 @@ List records support additional fields:
 | `disableDrop` | boolean | false | Prevent drag-and-drop onto this list |
 | `filterCriteria` | array | [] | Filter items shown in the list |
 | `orderCriteria` | array | [] | Sort order for items |
+
+**Panel records** are reusable embedded layouts. They are not standalone
+Compendium records and store their child values beneath the `<panel>` field on
+the parent record:
+
+```json
+{
+  "name": "Attributes Panel",
+  "type": "attributes_panel",
+  "isPanel": true,
+  "tabs": [{ "name": "Main", "file": "panels/attributes.html" }]
+}
+```
+
+Embed that layout from any record or list layout:
+
+```html
+<panel paneltype="attributes_panel" field="attributes"></panel>
+```
+
+If `attributes.html` contains `<numberfield field="strength">`, its value is
+stored at `record.data.attributes.strength`. Panel definitions use their first
+tab as the embedded layout. Panels can contain normal fields, lists, and other
+non-recursive panels.
 
 ### File References
 

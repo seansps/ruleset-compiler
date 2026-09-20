@@ -65,6 +65,17 @@ const LIST_DEFAULTS = {
 };
 
 /**
+ * Default fields for reusable embedded panel records.
+ */
+const PANEL_DEFAULTS = {
+  minX: 500,
+  minY: 60,
+  hideFromCompendium: true,
+  icon: "",
+  filters: {},
+};
+
+/**
  * Default fields for non-list records.
  */
 const RECORD_DEFAULTS = {
@@ -79,7 +90,11 @@ const RECORD_DEFAULTS = {
  * Fill in default fields for a record definition.
  */
 function fillRecordDefaults(record) {
-  const defaults = record.isList ? LIST_DEFAULTS : RECORD_DEFAULTS;
+  const defaults = record.isList
+    ? LIST_DEFAULTS
+    : record.isPanel
+      ? PANEL_DEFAULTS
+      : RECORD_DEFAULTS;
   for (const [key, value] of Object.entries(defaults)) {
     if (record[key] === undefined) {
       record[key] = value;

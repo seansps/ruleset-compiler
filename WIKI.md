@@ -121,9 +121,24 @@ Anywhere in the config you can replace a string value with `{ "file": "relative/
 
 ### Records
 
-Each entry in `records` is either a **standard record** (a full sheet with tabs — characters, items, etc.) or a **list record** (an embedded list used inside another record — inventory list, attack list, etc.).
+Each entry in `records` is a **standard record** (a full sheet with tabs), a
+**list record** (an embedded array), or a **panel record** (a reusable embedded
+object layout).
 
 List records set `"isList": true` and support extra fields like `showAddButton`, `allowedListTypes`, `filterCriteria`, and `orderCriteria`.
+
+Panel records set `"isPanel": true`. Their first tab supplies the reusable
+layout, and they are embedded with:
+
+```html
+<panel paneltype="attributes_panel" field="attributes"></panel>
+```
+
+Fields in the panel are scoped beneath the embedding field. For example,
+`<numberfield field="strength">` in this panel reads and writes
+`record.data.attributes.strength`. Panel records are hidden from the Compendium
+and module record-type selectors because they define layout, not standalone
+campaign content.
 
 ### Full example
 

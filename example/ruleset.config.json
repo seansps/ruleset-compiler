@@ -127,6 +127,12 @@
       "filters": {}
     },
     {
+      "name": "Attributes Panel",
+      "type": "attributes_panel",
+      "isPanel": true,
+      "tabs": [{ "name": "Main", "file": "attribute-panel.html" }]
+    },
+    {
       "name": "Skill List",
       "type": "skill_list",
       "isList": true,
