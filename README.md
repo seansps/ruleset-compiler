@@ -191,6 +191,9 @@ stored at `record.data.attributes.strength`. Panel definitions use their first
 tab as the embedded layout. Panels can contain normal fields, lists, and other
 non-recursive panels.
 
+The `field` attribute is optional. If it is omitted or empty, panel fields stay
+at the current data path, so `strength` is stored at `record.data.strength`.
+
 ### File References
 
 Anywhere in the config, use `{ "file": "relative/path" }` to inline a file's contents:

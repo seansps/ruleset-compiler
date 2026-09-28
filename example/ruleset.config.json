@@ -213,6 +213,7 @@
     "combatTracker": {
       "initiativeMode": "standard",
       "initiative": "initiative",
+      "initiativeWidth": 50,
       "order": "desc",
       "slotBased": false,
       "clearSlotsPerRound": false,

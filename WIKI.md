@@ -140,6 +140,10 @@ Fields in the panel are scoped beneath the embedding field. For example,
 and module record-type selectors because they define layout, not standalone
 campaign content.
 
+The embedding `field` is optional. When omitted or empty, the panel stays at the
+current data path, so the same `strength` field reads and writes
+`record.data.strength`.
+
 ### Full example
 
 Here's an example `ruleset.config.json` you can copy as a starting point. It defines a small ruleset with characters, NPCs, items, abilities, a few list types, and wires up rollhandlers + scripts from external files. Another, more complete can be found in `tools/ruleset-compiler/example/ruleset.config.json`.
@@ -264,6 +268,7 @@ Here's an example `ruleset.config.json` you can copy as a starting point. It def
     "combatTracker": {
       "initiativeMode": "standard",
       "initiative": "initiative",
+      "initiativeWidth": 50,
       "order": "desc",
       "slotBased": false,
       "clearSlotsPerRound": false,
@@ -466,6 +471,8 @@ The `secondaryStatScript` receives the same arguments as `damageScript` / `heali
   - `groupBySide` (default `true`) — render the tracker as friend/enemy/neutral sections, with the side acting first this round on top.
   - `sideOrder` — `"manual"` (default) means whoever the GM (or `defaultStartSide`) starts goes first; `"rolled"` means the side whose token rolls best on the `initiative` field wins (high or low decided by `order`). `"rolled"` keeps the per-token init column visible and the per-token Roll Initiative buttons enabled, so the existing `onRollInitiative` hook still drives the dice.
   - `defaultStartSide` — `"friend"` / `"enemy"` / `"neutral"` (or omitted). In `manual` order, this side auto-starts each round; in `rolled` order, it's the tiebreaker when faction max-init values are equal.
+
+`initiativeWidth` (number, default `50`) sets the pixel width of the initiative input on each tracker row. Widen it when initiative values carry decimals or large numbers (e.g. `12.2` for a tie-breaker die) so they don't overflow. Decimal values are preserved when the GM edits the field.
 
 Back-compat: the legacy `slotBased: true` boolean is still read — if `initiativeMode` is missing it's treated as `"slot"`. New rulesets should set `initiativeMode` explicitly.
 
