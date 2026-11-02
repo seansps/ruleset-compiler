@@ -7,6 +7,7 @@ import { createAuthenticatedClient } from "./auth.js";
 import { promptSelect, promptConfirm } from "./prompts.js";
 import { runRecords } from "./records.js";
 import { runEffects } from "./effects.js";
+import { DEPLOY_TOKEN_ENV, runTokenDeploy } from "./deploy.js";
 
 const program = new Command();
 
@@ -28,6 +29,10 @@ program
   .option("--new", "Create a new ruleset")
   .option("--dry-run", "Build JSON and write to stdout (no upload)")
   .option("--output <file>", "Build JSON and write to file (no upload)")
+  .option(
+    "--ref <ref>",
+    `Deploy ref sent with a ${DEPLOY_TOKEN_ENV} deploy (default: CI commit SHA or git HEAD)`
+  )
   .action(async (directory, cmdOpts, cmd) => {
     const opts = { ...program.opts(), ...cmdOpts };
     try {
@@ -130,7 +135,18 @@ async function runRulesets(directory, opts) {
     return;
   }
 
-  // 3. Authenticate (needed for both dry-run and real upload)
+  // 3. Deploy token (CI): no login, no prompts, PUT /rulesets/:id/deploy only.
+  //    Without REALM_DEPLOY_TOKEN everything below runs exactly as before.
+  if (process.env[DEPLOY_TOKEN_ENV]) {
+    await runTokenDeploy(payload, { ...opts, directory });
+    if (opts.dryRun) {
+      process.stdout.write(JSON.stringify(payload, null, 2));
+      process.stdout.write("\n");
+    }
+    return;
+  }
+
+  // 4. Authenticate (needed for both dry-run and real upload)
   const needsAuth = !opts.dryRun || opts.email || opts.password || opts.token || opts.id || opts.new;
 
   let client;
@@ -138,7 +154,7 @@ async function runRulesets(directory, opts) {
     client = await createAuthenticatedClient(opts);
   }
 
-  // 4. Select target
+  // 5. Select target
   let rulesetId = opts.id;
   let isNew = opts.new;
   let existingName; // name of the ruleset being overwritten (if known)
@@ -165,7 +181,7 @@ async function runRulesets(directory, opts) {
     }
   }
 
-  // 5. Dry run
+  // 6. Dry run
   if (opts.dryRun) {
     if (isNew) {
       console.error(`[dry-run] Would CREATE ruleset "${payload.name}"`);
@@ -179,7 +195,7 @@ async function runRulesets(directory, opts) {
     return;
   }
 
-  // 6. Upload
+  // 7. Upload
   if (isNew) {
     console.error(`Creating ruleset "${payload.name}"...`);
     const result = await client.createRuleset(payload);

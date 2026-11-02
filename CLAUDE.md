@@ -21,6 +21,7 @@ CLI tool that compiles a ruleset directory into a JSON payload and uploads it to
 3. Fills in default fields for records (list vs non-list)
 4. Builds a JSON payload matching the Realm VTT API schema
 5. Uploads via `POST /rulesets` (new) or `PATCH /rulesets/:id` (update)
+   - With `REALM_DEPLOY_TOKEN` set: non-interactive `PUT /rulesets/:id/deploy` instead (`src/deploy.js`); requires `--id`, no login
 
 ## Key Conventions
 
@@ -28,7 +29,7 @@ CLI tool that compiles a ruleset directory into a JSON payload and uploads it to
 - `rollTypes` entries use `file` → compiled to `handleResult` (the API field name)
 - Tab entries use `file` → compiled to `layout`
 - Prompts write to stderr so stdout stays clean for `--dry-run` / `--output`
-- Auth: email/password login or direct JWT token via `--token`
+- Auth: email/password login, direct JWT token via `--token`, or a per-ruleset deploy token via `REALM_DEPLOY_TOKEN` (never print it)
 
 ## Records Import (CSV)
 
