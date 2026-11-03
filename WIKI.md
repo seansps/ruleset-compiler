@@ -591,6 +591,40 @@ if (api.getCampaignVariable("omenDice") === undefined) {
 }
 ```
 
+### onEffectsChanged
+
+`settings.otherSettings.onEffectsChanged` is a script fired **once per effect change** on a character or token: an effect added, stacked, deducted, removed, or expired. It runs wherever the change comes from (Effects tab, token Effects overlay, combat tracker or carousel turn expiry, calendar expiry, `api.addEffect` / `api.removeEffect` from a script, the MCP), on the client that made the change. Nothing else runs it, so it never runs twice for one change.
+
+Return the `data.*` fields to write. They are saved **in the same update as the effect change**, so no other write can land between the two. Any other keys are ignored.
+
+```json
+"otherSettings": {
+  "onEffectsChanged": { "file": "scripts/onEffectsChanged.js" }
+}
+```
+
+| Variable | Description |
+| -------- | ----------- |
+| `record` | The actor as it will be after the change: new `effectIds`, `effects` (hydrated, one entry per effect), and `data` with the change's own rule writes applied. |
+| `recordType` | `"characters"` or `"tokens"`. |
+| `data.before` | The actor as it was before the change. |
+| `data.changes` | One entry per effect whose stack count moved: `{ effectId, name, oldCount, newCount, effect }`. `newCount` is 0 when it was removed. |
+
+```js
+// scripts/onEffectsChanged.js — a one-time HP loss when a condition lands or
+// stacks, which removing the condition does not give back.
+const change = data.changes.find((c) => c.name === "Drained");
+if (!change || change.newCount <= change.oldCount) return;
+const loss = Math.max(record.data.level || 0, 1) * (change.newCount - change.oldCount);
+return { "data.curhp": Math.max(0, (record.data.curhp || 0) - loss) };
+```
+
+Rules:
+
+- **Return values; don't write.** Don't call `api.setValues` or the effect API (`api.addEffect`, `api.removeEffect`) on the same actor from this hook. Effect changes on one actor run one at a time, so awaiting one from here waits on the change that is running the hook. A hook that hasn't finished after 5 seconds is skipped and the effect change is saved without it.
+- **A failing hook never blocks the effect change.** Errors are logged and the change is saved as if there were no hook.
+- **Effect rules still run first.** Data and Override rules on the effect apply (and restore on removal) as usual; `record.data` already includes them. Use the hook for what those can't do, like a one-way change or a value recomputed from every active effect.
+
 ### Campaign panel (Campaign Values window)
 
 `settings.otherSettings.campaignPanel` gives the campaign a ruleset-defined window — shown under **View → Campaign Values** (or your custom name) — rendering a layout with the **same HTML syntax as record tabs**, bound to the campaign variables instead of a record. Field `name` attributes map to variable names (`name="omenDice"` reads/writes `api.getCampaignVariable("omenDice")`), and `<script>` blocks plus `onclick`/`onchange` handlers work exactly as in tabs.

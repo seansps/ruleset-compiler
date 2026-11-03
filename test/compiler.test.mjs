@@ -46,6 +46,33 @@ test("compile passes compatibility through verbatim when present", async () => {
   }
 });
 
+test("compile resolves the onEffectsChanged file ref", async () => {
+  const dir = await makeRulesetDir({
+    ...baseConfig,
+    settings: {
+      otherSettings: {
+        onEffectsChanged: { file: "scripts/onEffectsChanged.js" },
+      },
+    },
+  });
+  try {
+    const { mkdir } = await import("node:fs/promises");
+    await mkdir(join(dir, "scripts"), { recursive: true });
+    await writeFile(
+      join(dir, "scripts", "onEffectsChanged.js"),
+      "return { 'data.curhp': 1 };",
+      "utf-8",
+    );
+    const payload = await compile(dir);
+    assert.equal(
+      payload.settings.otherSettings.onEffectsChanged,
+      "return { 'data.curhp': 1 };",
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("compile resolves campaignPanel file → layout and onCampaignLoad file ref", async () => {
   const dir = await makeRulesetDir({
     ...baseConfig,
