@@ -710,6 +710,7 @@ paths are relative to the skin folder. Colors are hex (`#5e0000`), `rgb()`,
 | `recordTypes` | Per record type overrides, e.g. `{ "characters": { "frames": { "windowHeader": {...} } } }` (slots: `window`, `windowHeader`, `tabList`, `tab`, `tabActive`, `recordBody`) |
 | `tags`        | Chat and sheet tag colors by content (below) |
 | `macroButtons`| Chat macro button looks (below) |
+| `sheetButtons`| Looks for sheet buttons tagged `skin="..."` (below) |
 | `scrollbar`   | `{ "thumb", "thumbHover" }` |
 
 **Frames.** `frames` maps a slot to how it is drawn. Slots: `window`,
@@ -766,6 +767,22 @@ Icons are Realm icon names: Tabler (`IconHeartBroken`), game-icons
   "variants": { "attack": { "background": "#3a2e26", "textColor": "#f4ecd8", "icon": "d20" } },
   "match": { "attack": ["roll_attack*"] },
   "buttons": { "Roll_Fire_Damage": { "icon": "fire" }, "Apply_Half_Damage": { "icon": "IconHeartMinus", "label": "Half" } }
+}
+```
+
+`sheetButtons` styles buttons on your sheets. Tag a `<button>` or
+`<iconbutton>` with `skin="<name>"` (lowercase letters, digits, dashes);
+`base` applies to every tagged button and `variants` holds one frame per name.
+Untagged buttons, and skins without that name, keep the normal look.
+
+```html
+<button label="Damage" skin="damage" onclick="rollDamage(false)"></button>
+```
+
+```json
+"sheetButtons": {
+  "base": { "textColor": "#ffffff", "radius": 3 },
+  "variants": { "damage": { "background": "#5e0000", "hover": { "background": "#7a1010" } } }
 }
 ```
 
