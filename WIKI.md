@@ -704,7 +704,7 @@ paths are relative to the skin folder. Colors are hex (`#5e0000`), `rgb()`,
 | `palette`     | `colors` (10-shade ramps for `primary`, `secondary`, `red`, `gray`, ...), `primaryShade`, and `other` (window and chat card colors) |
 | `tokens`      | Sheet design tokens: `accent`, `bg`, `surface`, `text`, `text-dim`, `border`, `divider`, `danger`, `success`, ... |
 | `fonts`       | `[{ "family", "src", "weight", "style" }]`, up to 12 |
-| `fontRoles`   | Font family per role: `body`, `heading`, `windowTitle`, `chat`, `whisper` |
+| `fontRoles`   | Font family per role: `body`, `heading`, `windowTitle`, `modalTitle` (dialog titles, defaults to `windowTitle`), `chat`, `whisper` |
 | `radius`      | Default corner radius for inputs and buttons, in px |
 | `frames`      | How each UI slot is drawn (below) |
 | `recordTypes` | Per record type overrides, e.g. `{ "characters": { "frames": { "windowHeader": {...} } } }` (slots: `window`, `windowHeader`, `tabList`, `tab`, `tabActive`, `recordBody`) |
