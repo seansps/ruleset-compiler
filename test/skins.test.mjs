@@ -74,6 +74,12 @@ test("warns when settings.skin has no folder", () => {
   assert.match(logs[0], /no skins\/nope folder/);
 });
 
+test("does not warn when settings.skin is another ruleset's skin", () => {
+  const logs = [];
+  checkDefaultSkin({ settings: { skin: "66e37156b49c73d33593dbfd:grimoire" } }, [], (m) => logs.push(m));
+  assert.equal(logs.length, 0);
+});
+
 test("uploads each skin with the deploy token", async () => {
   const realFetch = globalThis.fetch;
   const requests = [];

@@ -109,10 +109,13 @@ export async function collectSkins(rulesetDir, { verbose = false, log = console.
   return skins;
 }
 
-/** Warn when settings.skin names a skin the repo does not have. */
+/**
+ * Warn when settings.skin names a skin the repo does not have. A full ref
+ * ("<rulesetId>:<slug>") points at another ruleset's skin and is left alone.
+ */
 export function checkDefaultSkin(payload, skins, log = console.error) {
   const slug = payload?.settings?.skin;
-  if (slug && !skins.some((s) => s.slug === slug)) {
+  if (slug && !slug.includes(":") && !skins.some((s) => s.slug === slug)) {
     log(`Warning: settings.skin is "${slug}", but there is no skins/${slug} folder in this ruleset.`);
   }
 }
