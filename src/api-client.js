@@ -125,6 +125,31 @@ export class RulesetAPIClient {
   }
 
   /**
+   * Upload (create or replace) one of a ruleset's skins.
+   * POST /ruleset-skins
+   */
+  async uploadSkin(rulesetId, skin) {
+    const res = await fetch(`${this.baseUrl}/ruleset-skins`, {
+      method: "POST",
+      headers: this._headers(),
+      body: JSON.stringify({
+        rulesetId,
+        slug: skin.slug,
+        name: skin.name,
+        manifest: skin.manifest,
+        files: skin.files,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Skin ${skin.slug} upload failed (${res.status}): ${body}`);
+    }
+
+    return res.json();
+  }
+
+  /**
    * Resolve a campaign ID from its invite code.
    * GET /campaigns?inviteCode=...
    */

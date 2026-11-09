@@ -8,6 +8,7 @@ import { promptSelect, promptConfirm } from "./prompts.js";
 import { runRecords } from "./records.js";
 import { runEffects } from "./effects.js";
 import { DEPLOY_TOKEN_ENV, runTokenDeploy } from "./deploy.js";
+import { checkDefaultSkin, collectSkins, uploadSkins, uploadSkinWithToken } from "./skins.js";
 
 const program = new Command();
 
@@ -29,6 +30,7 @@ program
   .option("--new", "Create a new ruleset")
   .option("--dry-run", "Build JSON and write to stdout (no upload)")
   .option("--output <file>", "Build JSON and write to file (no upload)")
+  .option("--skip-skins", "Don't upload the skins in <directory>/skins")
   .option(
     "--ref <ref>",
     `Deploy ref sent with a ${DEPLOY_TOKEN_ENV} deploy (default: CI commit SHA or git HEAD)`
@@ -126,12 +128,15 @@ async function runRulesets(directory, opts) {
   // 1. Compile
   if (opts.verbose) console.error("Compiling...\n");
   const payload = await compile(directory, { verbose: opts.verbose });
+  const skins = opts.skipSkins ? [] : await collectSkins(directory, { verbose: opts.verbose });
+  if (!opts.skipSkins) checkDefaultSkin(payload, skins);
   if (opts.verbose) console.error("");
 
   // 2. Output to file (no auth needed)
   if (opts.output) {
     await writeFile(opts.output, JSON.stringify(payload, null, 2), "utf-8");
     console.error(`Written to ${opts.output}`);
+    if (skins.length) console.error(`Not included: ${skins.length} skin(s); they upload separately.`);
     return;
   }
 
@@ -139,6 +144,14 @@ async function runRulesets(directory, opts) {
   //    Without REALM_DEPLOY_TOKEN everything below runs exactly as before.
   if (process.env[DEPLOY_TOKEN_ENV]) {
     await runTokenDeploy(payload, { ...opts, directory });
+    if (!opts.dryRun && skins.length) {
+      const token = process.env[DEPLOY_TOKEN_ENV];
+      await uploadSkins(skins, (skin) =>
+        uploadSkinWithToken({ baseUrl: opts.url, token, rulesetId: opts.id, skin })
+      );
+    } else if (skins.length) {
+      console.error(`[dry-run] Would upload skins: ${skins.map((s) => s.slug).join(", ")}`);
+    }
     if (opts.dryRun) {
       process.stdout.write(JSON.stringify(payload, null, 2));
       process.stdout.write("\n");
@@ -190,6 +203,9 @@ async function runRulesets(directory, opts) {
     } else {
       console.error(`[dry-run] No target selected`);
     }
+    if (skins.length) {
+      console.error(`[dry-run] Would upload skins: ${skins.map((s) => s.slug).join(", ")}`);
+    }
     process.stdout.write(JSON.stringify(payload, null, 2));
     process.stdout.write("\n");
     return;
@@ -201,6 +217,7 @@ async function runRulesets(directory, opts) {
     const result = await client.createRuleset(payload);
     console.error(`Created! ID: ${result._id}`);
     console.error(`Name: ${result.name}`);
+    await uploadSkins(skins, (skin) => client.uploadSkin(result._id, skin));
   } else {
     // Determine the name of the ruleset we're about to overwrite. If the
     // target came from --id we don't have it yet, so fetch it.
@@ -233,6 +250,7 @@ async function runRulesets(directory, opts) {
     } else {
       console.error(`Name: ${result.name} (matched existing)`);
     }
+    await uploadSkins(skins, (skin) => client.uploadSkin(rulesetId, skin));
   }
 }
 

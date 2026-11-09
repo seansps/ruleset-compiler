@@ -119,6 +119,36 @@ my-ruleset/
     damage-apply.js
 ```
 
+## Skins
+
+A ruleset can ship UI skins that restyle Realm (windows, chat, sheets, tags,
+macro buttons). Put each one in its own folder:
+
+```
+my-ruleset/
+  skins/
+    pathfinder/          # folder name = skin id (lowercase letters, digits, dashes)
+      skin.json          # the manifest
+      frames/paper.png   # textures and fonts the manifest points at
+      fonts/Body.woff2
+```
+
+Skins upload after the ruleset on every push, with either a login or a
+deploy token (`PUT /rulesets/:id/skins/:slug`). Only images and fonts are
+uploaded (png, jpg, webp, avif, woff2, woff, ttf, otf); anything else in the
+folder, such as a font license, is skipped. The build fails if `skin.json` is
+missing, invalid JSON, or points at a file that is not in the folder. Pass
+`--skip-skins` to push only the ruleset.
+
+Set the default skin for new campaigns with `settings.skin` (the folder name):
+
+```json
+{ "settings": { "skin": "pathfinder" } }
+```
+
+Once the ruleset is published, anyone can use its skins in any campaign. GMs
+can change a campaign's skin and players can pick their own in Settings.
+
 ## `ruleset.config.json`
 
 This is the main configuration file. It defines the ruleset name, record types, and settings. Any value can reference an external file using `{ "file": "path/to/file" }` — the compiler inlines file contents automatically.
