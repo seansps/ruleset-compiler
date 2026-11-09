@@ -64,6 +64,7 @@ If you omit both `--id` and `--new`, the tool fetches the list of rulesets you o
 | `--url <url>`           | API base URL (default: `https://utilities.realmvtt.com`) |
 | `--dry-run`             | Build JSON and print to stdout — does not upload         |
 | `--output <file>`       | Build JSON and write to a file — does not upload         |
+| `--skip-skins`          | Don't upload the skins in `skins/`                       |
 | `-v, --verbose`         | Verbose logging                                          |
 
 ---
@@ -93,6 +94,10 @@ my-ruleset/
     damage-apply.js
     healing-apply.js
     rest.js
+  skins/                 # optional UI skins (see Skins)
+    my-skin/
+      skin.json
+      frames/paper.png
 ```
 
 File paths inside `ruleset.config.json` are resolved **relative to the ruleset directory**.
@@ -651,6 +656,119 @@ Rules:
 
 The menu entry only appears when the panel is defined (or, for GMs, when any variables exist — that opens the raw editor). The window toggles with the `\` key. Inside the layout, branch GM-only *sections* on `isGM` in scripts — but remember the visibility warning above: this hides, it does not protect.
 
+### Skins
+
+A ruleset can ship UI skins that restyle Realm for its campaigns: windows,
+chat cards, the hotbar and drawer, scene tools, character sheets, tag colors,
+chat macro buttons, and the loading and pause screens. Each skin is a folder
+under `skins/`:
+
+```
+my-ruleset/
+  skins/
+    pathfinder/            # folder name = skin id (lowercase letters, digits, dashes)
+      skin.json            # the manifest
+      frames/paper.png     # textures and art the manifest points at
+      fonts/Body.woff2     # fonts
+```
+
+On every push the compiler uploads each skin after the ruleset (with a login
+or a deploy token). Only images and fonts are uploaded (png, jpg, webp, avif,
+woff2, woff, ttf, otf); anything else in the folder, such as a font license,
+is skipped. The build fails if `skin.json` is missing or invalid JSON, or
+points at a file that is not in the folder. Uploading a skin again replaces
+it. `--skip-skins` pushes only the ruleset.
+
+Set the skin new campaigns start with in `settings.skin` (the folder name):
+
+```json
+{ "settings": { "skin": "pathfinder" } }
+```
+
+Once the ruleset is published, anyone can use its skins in any campaign. A GM
+can change a campaign's skin, and each player can pick their own per ruleset
+in Settings > Appearance. You can also upload, preview and delete skins in the
+ruleset editor's **Skins** tab.
+
+#### `skin.json`
+
+A skin is data only: Realm validates every value and builds the CSS itself,
+so a manifest can't run scripts or load files from outside its folder. File
+paths are relative to the skin folder. Colors are hex (`#5e0000`), `rgb()`,
+`rgba()` or `transparent`.
+
+| Field         | Description |
+| ------------- | ----------- |
+| `name`        | Display name (required) |
+| `colorScheme` | `"light"` or `"dark"` (required) |
+| `palette`     | `colors` (10-shade ramps for `primary`, `secondary`, `red`, `gray`, ...), `primaryShade`, and `other` (window and chat card colors) |
+| `tokens`      | Sheet design tokens: `accent`, `bg`, `surface`, `text`, `text-dim`, `border`, `divider`, `danger`, `success`, ... |
+| `fonts`       | `[{ "family", "src", "weight", "style" }]`, up to 12 |
+| `fontRoles`   | Font family per role: `body`, `heading`, `windowTitle`, `chat`, `whisper` |
+| `radius`      | Default corner radius for inputs and buttons, in px |
+| `frames`      | How each UI slot is drawn (below) |
+| `recordTypes` | Per record type overrides, e.g. `{ "characters": { "frames": { "windowHeader": {...} } } }` (slots: `window`, `windowHeader`, `tabList`, `tab`, `tabActive`, `recordBody`) |
+| `tags`        | Chat and sheet tag colors by content (below) |
+| `macroButtons`| Chat macro button looks (below) |
+| `scrollbar`   | `{ "thumb", "thumbHover" }` |
+
+**Frames.** `frames` maps a slot to how it is drawn. Slots: `window`,
+`windowHeader`, `recordWindowHeader`, `windowTitle`, `windowContent`,
+`recordWindowContent`, `recordBody`, `tabList`, `tab`, `tabActive`,
+`chatCard`, `chatCardWhisper`, `chatCardPrivate`, `chatInput`, `tooltip`,
+`drawer`, `drawerTab`, `drawerTabActive`, `toolbar`, `sceneButton`,
+`sceneButtonActive`, `sceneTab`, `sceneTabActive`, `hotbar`, `hotbarTabs`,
+`hotbarTab`, `hotbarTabActive`, `hotbarRow`, `hotbarDivider`, `hotbarSlot`,
+`hotbarSlotFilled`, `ctRow`, `ctRowActive`, `modal`, `panel`, `appBar`,
+`button`, `iconButton`, `sheetSection`, `attributeCard`, `sheetCorner`,
+`loadingCard`, `loadingLogo`, `pauseCard`, `pauseIcon`, `sceneDecal`.
+
+A frame can set:
+
+| Field | Description |
+| ----- | ----------- |
+| `background` | Solid color |
+| `texture` | `{ "src", "scale" }`: a repeating tile; `scale` 2 draws it at half its pixel size |
+| `art` | `{ "src" }`: replaces the element's content with this image, centered and scaled to fit (logos, icons) |
+| `border`, `borderWidth`, `radius`, `shadow` | Border color and width, corner radius, drop shadow color |
+| `size`, `iconSize`, `gap`, `padding` | Control or art box size, icon size, child gap, `[top, right, bottom, left]` inset (px) |
+| `textColor`, `fontWeight`, `uppercase` | Text color, weight, forced case |
+| `hidden` | Hide the element (e.g. `"sheetCorner": { "hidden": true }`) |
+| `hover` | A frame layered on while the pointer is over it |
+| `scheme`, `tokens`, `darkShades`, `grayShades` | Recolor everything inside: a light parchment area in a dark skin sets `"scheme": "light"` plus tokens and shade ramps |
+
+**Tags.** Every tag gets `base` plus the `default` variant. `match` assigns
+variants by tag text (lowercase; `*` at either end matches a prefix or
+suffix). A variant the ruleset sends on the tag wins over matching, and an
+inline color wins over everything.
+
+```json
+"tags": {
+  "base": { "radius": 2, "textColor": "#ffffff", "uppercase": true },
+  "variants": { "trait": { "background": "#786452" }, "rare": { "background": "#002664" } },
+  "default": "trait",
+  "match": { "rare": ["rare"] }
+}
+```
+
+**Macro buttons.** `style` is the base look and `layout: "stacked"` puts the
+icon above a small label. `row: true` lays a message's buttons out as one row.
+`kinds.effect` styles macros that apply an effect. `variants` plus `match`
+style buttons by macro name (lowercase, underscores, `*` at either end; later
+entries win), and `buttons` gives one macro an icon and a shorter label.
+Icons are Realm icon names: Tabler (`IconHeartBroken`), game-icons
+(`GiShield`), dice (`d20`) or damage types (`fire`).
+
+```json
+"macroButtons": {
+  "layout": "stacked",
+  "row": true,
+  "variants": { "attack": { "background": "#3a2e26", "textColor": "#f4ecd8", "icon": "d20" } },
+  "match": { "attack": ["roll_attack*"] },
+  "buttons": { "Roll_Fire_Damage": { "icon": "fire" }, "Apply_Half_Damage": { "icon": "IconHeartMinus", "label": "Half" } }
+}
+```
+
 ### What the compiler does
 
 1. Reads `ruleset.config.json`.
@@ -659,6 +777,7 @@ The menu entry only appears when the panel is defined (or, for GMs, when any var
 4. For **rollTypes** entries, the `file` becomes that roll type's `handleResult`.
 5. Fills in sensible defaults for any record fields you omitted.
 6. Sends the final payload to `POST /rulesets` (new) or `PATCH /rulesets/:id` (update).
+7. Uploads each skin in `skins/` (see Skins).
 
 ---
 

@@ -22,6 +22,7 @@ CLI tool that compiles a ruleset directory into a JSON payload and uploads it to
 4. Builds a JSON payload matching the Realm VTT API schema
 5. Uploads via `POST /rulesets` (new) or `PATCH /rulesets/:id` (update)
    - With `REALM_DEPLOY_TOKEN` set: non-interactive `PUT /rulesets/:id/deploy` instead (`src/deploy.js`); requires `--id`, no login
+6. Uploads each `skins/<slug>/` folder (`src/skins.js`): `POST /ruleset-skins` with a login, `PUT /rulesets/:id/skins/:slug` with a deploy token. Only images and fonts upload; a missing file referenced by `skin.json` fails the build. `--skip-skins` opts out
 
 ## Key Conventions
 
