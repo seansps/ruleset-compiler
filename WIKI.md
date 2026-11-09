@@ -679,15 +679,15 @@ is skipped. The build fails if `skin.json` is missing or invalid JSON, or
 points at a file that is not in the folder. Uploading a skin again replaces
 it. `--skip-skins` pushes only the ruleset.
 
-Set the skin new campaigns start with in `settings.skin` (the folder name):
+Set the ruleset's default skin in `settings.skin` (the folder name):
 
 ```json
 { "settings": { "skin": "pathfinder" } }
 ```
 
-Once the ruleset is published, anyone can use its skins in any campaign. A GM
-can change a campaign's skin, and each player can pick their own per ruleset
-in Settings > Appearance. You can also upload, preview and delete skins in the
+Once the ruleset is published, anyone can use its skins in any campaign. Each
+player can pick their own skin per ruleset in Settings > Appearance; otherwise
+they see the ruleset's default. You can also upload, preview and delete skins in the
 ruleset editor's **Skins** tab.
 
 #### `skin.json`

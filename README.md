@@ -140,14 +140,14 @@ folder, such as a font license, is skipped. The build fails if `skin.json` is
 missing, invalid JSON, or points at a file that is not in the folder. Pass
 `--skip-skins` to push only the ruleset.
 
-Set the default skin for new campaigns with `settings.skin` (the folder name):
+Set the ruleset's default skin with `settings.skin` (the folder name):
 
 ```json
 { "settings": { "skin": "pathfinder" } }
 ```
 
-Once the ruleset is published, anyone can use its skins in any campaign. GMs
-can change a campaign's skin and players can pick their own in Settings.
+Once the ruleset is published, anyone can use its skins in any campaign. Each
+player can pick their own per ruleset in Settings; otherwise they see the default.
 
 ## `ruleset.config.json`
 
