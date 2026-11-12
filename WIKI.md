@@ -481,6 +481,31 @@ The `secondaryStatScript` receives the same arguments as `damageScript` / `heali
 
 Back-compat: the legacy `slotBased: true` boolean is still read — if `initiativeMode` is missing it's treated as `"slot"`. New rulesets should set `initiativeMode` explicitly.
 
+### Combat tracker: campaign setting overrides
+
+`settings.combatTracker.campaignSettingOverrides` changes the initiative settings based on one of the ruleset's own campaign settings, so one ruleset can offer, for example, side initiative or individual initiative as a campaign option:
+
+```json
+"combatTracker": {
+  "initiativeMode": "manual",
+  "manualOptions": { "groupBySide": true, "sideOrder": "rolled" },
+  "campaignSettingOverrides": [
+    {
+      "setting": "initiativeStyle",
+      "value": "individual",
+      "overrides": { "initiativeMode": "standard" }
+    }
+  ]
+}
+```
+
+- `setting` is a key from `settings.campaignSettings`. Its value is read the same way `api.getSetting` reads it: the campaign's stored value, else the setting's first listed value.
+- `value` is a string, or an array of strings to match any of them.
+- `overrides` may set `initiative`, `initiativeWidth`, `initiativeMode`, `slotBased`, `clearSlotsPerRound`, `order`, and `manualOptions`. Other keys (scripts, `additionalFields`) are ignored. `manualOptions` merges into the base `manualOptions`; every other key replaces the base value.
+- Matching entries apply in order, so a later entry wins on the same key.
+
+The combat tracker, the token context menu, the 2D and 3D renderers, and MCP combat all read the resolved settings. Ruleset scripts that branch on the setting (an `onRollInitiative` that rolls per side or per combatant, for example) still read it with `api.getSetting`.
+
 ### Combat tracker — additional fields
 
 `settings.combatTracker.additionalFields` are the extra columns rendered on each tracker row (HP, AC, and so on). Each entry is:
