@@ -214,7 +214,10 @@ async function runRulesets(directory, opts) {
   // 7. Upload
   if (isNew) {
     console.error(`Creating ruleset "${payload.name}"...`);
-    const result = await client.createRuleset(payload);
+    // The create schema doesn't accept `published` (new rulesets always start
+    // unpublished); updates and deploys do.
+    const { published: _published, ...createPayload } = payload;
+    const result = await client.createRuleset(createPayload);
     console.error(`Created! ID: ${result._id}`);
     console.error(`Name: ${result.name}`);
     await uploadSkins(skins, (skin) => client.uploadSkin(result._id, skin));
