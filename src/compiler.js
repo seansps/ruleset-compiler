@@ -150,19 +150,25 @@ export async function compile(directory, { verbose = false } = {}) {
       compiled.pdfExport = await resolveFileRefs(compiled.pdfExport, dir, verbose);
     }
 
-    // Resolve wizard step HTML files (file → layout, mirroring tabs)
+    // Resolve wizard step HTML files (file → layout, mirroring tabs).
+    // Accepts `"file": "x.html"` on the step or `"layout": { "file": "x.html" }`.
     if (compiled.wizard && Array.isArray(compiled.wizard.steps)) {
       compiled.wizard = {
         ...compiled.wizard,
         steps: await Promise.all(
           compiled.wizard.steps.map(async (step) => {
-            const layout = step.file
-              ? await (async () => {
-                  const filePath = join(dir, step.file);
-                  if (verbose) console.log(`  Reading wizard step: ${step.file}`);
-                  return readFile(filePath, "utf-8");
-                })()
-              : step.layout || "";
+            const stepFile =
+              step.file ||
+              (step.layout && typeof step.layout === "object" && typeof step.layout.file === "string"
+                ? step.layout.file
+                : null);
+            let layout;
+            if (stepFile) {
+              if (verbose) console.log(`  Reading wizard step: ${stepFile}`);
+              layout = await readFile(join(dir, stepFile), "utf-8");
+            } else {
+              layout = typeof step.layout === "string" ? step.layout : "";
+            }
             const result = { name: step.name, layout };
             for (const [key, value] of Object.entries(step)) {
               if (key !== "name" && key !== "file" && key !== "layout") {

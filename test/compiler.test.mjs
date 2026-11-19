@@ -208,3 +208,50 @@ test("compile preserves panel definitions and resolves their HTML files", async 
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("compile resolves wizard step files written either way", async () => {
+  const dir = await makeRulesetDir({
+    ...baseConfig,
+    records: [
+      {
+        name: "Characters",
+        type: "characters",
+        tabs: [{ name: "Main", layout: "<x></x>" }],
+        wizard: {
+          enabled: true,
+          steps: [
+            { name: "Step File", next: "Step Layout File", previous: "", file: "wizard/one.html" },
+            { name: "Step Layout File", next: "Inline", previous: "Step File", layout: { file: "wizard/two.html" } },
+            { name: "Inline", next: "Empty", previous: "Step Layout File", layout: "<inline></inline>" },
+            { name: "Empty", next: "", previous: "Inline" },
+          ],
+        },
+      },
+    ],
+  });
+  try {
+    const { mkdir } = await import("node:fs/promises");
+    await mkdir(join(dir, "wizard"), { recursive: true });
+    await writeFile(join(dir, "wizard", "one.html"), "<one></one>", "utf-8");
+    await writeFile(join(dir, "wizard", "two.html"), "<two></two>", "utf-8");
+
+    const payload = await compile(dir);
+    const steps = payload.records[0].wizard.steps;
+    assert.deepEqual(
+      steps.map((s) => s.layout),
+      ["<one></one>", "<two></two>", "<inline></inline>", ""],
+    );
+    for (const step of steps) assert.equal("file" in step, false);
+    assert.deepEqual(
+      steps.map((s) => [s.name, s.next, s.previous]),
+      [
+        ["Step File", "Step Layout File", ""],
+        ["Step Layout File", "Inline", "Step File"],
+        ["Inline", "Empty", "Step Layout File"],
+        ["Empty", "", "Inline"],
+      ],
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
